@@ -4,13 +4,12 @@ import requests
 import json
 
 
-
-#app = FastAPI()
+app = FastAPI()
 
 
 #Function that calls the data-generator api for a list of the first 1000 logs and then calls the anomaly-detector api
 #to check which of those logs are a anomaly. It then returns a list of all anomalies and there anomaly-score.
-
+@app.get("/getAnomalyList")
 def getAnomalyList(threshold: float = 0.02):
     myResult = []
 #Retrives the list from the datagenerator
@@ -22,10 +21,10 @@ def getAnomalyList(threshold: float = 0.02):
         answer = response.json()
         anomalyScore = answer["anomaly_score"]
         if anomalyScore > threshold:
-         myResult.append((i[0], anomalyScore, True))
-    print(myResult[0])
+         myResult.append((i[0], anomalyScore))
+    return myResult
 
 
-getAnomalyList()
+
  
 
