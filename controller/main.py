@@ -8,30 +8,24 @@ import json
 #app = FastAPI()
 
 
-def getAnomalyList(threshold : float = 0.02):
+#Function that calls the data-generator api for a list of the first 1000 logs and then calls the anomaly-detector api
+#to check which of those logs are a anomaly. It then returns a list of all anomalies and there anomaly-score.
+
+def getAnomalyList(threshold: float = 0.02):
     myResult = []
+#Retrives the list from the datagenerator
     request = requests.get("http://localhost:8000/logs/LogList")
+#Deserialize it from json    
     dataList = request.json()
     for i in dataList:
-         response = requests.get('http://localhost:8001/logs/getPredict/', params = {"log_message":i[0], "threshold":threshold} )
-         answer = response.json()
-         anomalyScore = answer["anomaly_score"]
-         if anomalyScore > threshold:
-            myResult.append((i[0], anomalyScore, True))
+        response = requests.get('http://localhost:8001/logs/getPredict/', params = {"log_message":i[0], "threshold":threshold} )
+        answer = response.json()
+        anomalyScore = answer["anomaly_score"]
+        if anomalyScore > threshold:
+         myResult.append((i[0], anomalyScore, True))
     print(myResult[0])
 
-def testList():
-    myL = requests.get("http://localhost:8000/logs/LogList")
-    gooddata = myL.json()
-    #test = gooddata[0].split(", ")
-    print(type(gooddata[0]))
-    #print(test[0])
 
-def testGetHealth():
-    val = requests.get('http://localhost:8000/health')
-    print(val.text)
-
-#testList()
 getAnomalyList()
-#testGetHealth()   
+ 
 
