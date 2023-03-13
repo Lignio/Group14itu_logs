@@ -6,13 +6,12 @@ from datetime import date
 import dash_bootstrap_components as dbc
 import random
 from plotly.graph_objs import *
+import requests
 
 ##The app.py page does not actually contain the pages that are being loaded, it is more so a container
 #for pages. It only contains the sidebar (containing buttons to navigate) and a page_container.
 #The page container then loads the actual pages from the pages directory.
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True)
-
-
 
 
 app.layout = html.Div(children=[ 
