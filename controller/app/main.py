@@ -3,6 +3,7 @@ from fastapi import FastAPI
 import requests
 import json
 import threading
+import time
 
 
 app = FastAPI()
@@ -25,23 +26,24 @@ def getAnomalyList(threshold: float = 0.02):
          myResult.append((i[0], anomalyScore))
     return myResult
 
-
-def simulateLogsteam():
-    #Runs the method after amount of time, currently 0.08 second
-    t = threading.Timer(0.08, simulateLogsteam)
-    t.daemon = True
-    t.start()
-    myLogmessage = requests.get("http://localhost:8000/logs/get_record")
-    analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
-    analysedMessage = analysedMessage.json()
-    if analysedMessage["anomaly_score"] > 0.02:
-        # Replace print with insertion into database
-        print(analysedMessage["log_message"])
-
-simulateLogsteam()
-
-
-
 @app.get("/getNumOfThreads")
 def getNumOfThreads():
     return threading.active_count()
+
+def simulateLogsteam():
+    while True:
+       time.sleep(0.04)
+       myLogmessage = requests.get("http://localhost:8000/logs/get_record")
+       analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
+       analysedMessage = analysedMessage.json()
+       if analysedMessage["anomaly_score"] > 0.02:
+        # Replace print with insertion into database
+        print(analysedMessage["log_message"])
+    
+
+t = threading.Thread(target=simulateLogsteam)
+t.daemon = True
+t.start()
+
+
+
