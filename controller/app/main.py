@@ -31,14 +31,21 @@ def getNumOfThreads():
     return threading.active_count()
 
 def simulateLogsteam():
+    numMessages = 0
+    start = time.time()
     while True:
-       time.sleep(0.04)
-       myLogmessage = requests.get("http://localhost:8000/logs/get_record")
+       myLogmessage = requests.get("http://localhost:8000/logs/get_record").json()
        analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
        analysedMessage = analysedMessage.json()
+       numMessages = numMessages +1
+       if numMessages==1000:
+          end = time.time()
+          print("1000 messages takes ", end-start)
        if analysedMessage["anomaly_score"] > 0.02:
-        # Replace print with insertion into database
-        print(analysedMessage["log_message"])
+         # Replace print with insertion into database
+         print(analysedMessage["log_message"])
+    
+
     
 
 t = threading.Thread(target=simulateLogsteam)
