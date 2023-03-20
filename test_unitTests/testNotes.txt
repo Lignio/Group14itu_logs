@@ -1,0 +1,4 @@
+Python unittesting notes:
+
+- Pytest files must always be named *_test.py or test_*.py (the star being your filename). 
+- To run tests in console use the command "python -m pytest .\test_UnitTests.py" with the last part being the filepath to the test file.
