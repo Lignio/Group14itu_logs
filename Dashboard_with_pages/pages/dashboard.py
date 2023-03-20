@@ -5,6 +5,7 @@ import plotly.express as px
 from datetime import date
 import dash_bootstrap_components as dbc
 import random
+import requests
 from plotly.graph_objs import *
 from .testdata import genLists
 
@@ -12,12 +13,32 @@ from .testdata import genLists
 dash.register_page(__name__)
 
 
+jsonLst = requests.get("http://localhost:8002/getAnomalyList", params = {"threshold":0.02})
+dataList = jsonLst.json()
+anomalyScoreList = []
+
+for i in dataList: 
+    anomalyScoreList.append(i[1])
+
+anomalyToPiechart = [0,0,0]
+
+def countvalues():
+    for i in anomalyScoreList:
+        if i < 0.024:
+            anomalyToPiechart[0]+=1
+        elif i > 0.024 and i < 0.026:
+            anomalyToPiechart[1]+=1
+        else:
+            anomalyToPiechart[2]+=1
+    print(anomalyToPiechart)
+    return anomalyToPiechart
+
 lst1, lst2 = genLists()
 
 #The figures are currently just populated with test data. The figures are created
 #with the plotly package, so all documentation is via plotly.
 ScatterPlotFig = px.scatter(x=lst1,y=lst2,title="Scatter plot of name lengths").update_layout(xaxis_title="Name length",yaxis_title="Name count",margin=dict(l=20, r=20, t=30, b=20))
-PieChartFig = px.pie(values=[5,7,10], names=["Hej", "Hej2", "Hej3"], title="Piechart for data").update_layout(margin=dict(l=20, r=20, t=30, b=20))
+PieChartFig = px.pie(values=countvalues(), names=["0.02 - 0.024", "0.024 - 0.026", ">0.026"], title="Piechart for data").update_layout(margin=dict(l=20, r=20, t=30, b=20))
 
 testDf = pd.read_csv('Dashboard_with_pages\TestCSVLg.csv',delimiter=';')
 
