@@ -3,7 +3,7 @@ from fastapi import FastAPI
 import requests
 import json
 import threading
-import time
+import queue
 
 
 app = FastAPI()
@@ -26,31 +26,37 @@ def getAnomalyList(threshold: float = 0.02):
          myResult.append((i[0], anomalyScore))
     return myResult
 
-@app.get("/getNumOfThreads")
-def getNumOfThreads():
-    return threading.active_count()
+# Queue with our log messages
+logQueue = queue.Queue(1000)
 
+# Method for simlating getting constant steam of mesagges and inserting them into the queue
 def simulateLogsteam():
-    numMessages = 0
-    start = time.time()
     while True:
-       myLogmessage = requests.get("http://localhost:8000/logs/get_record").json()
-       analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
-       analysedMessage = analysedMessage.json()
-       numMessages = numMessages +1
-       if numMessages==1000:
-          end = time.time()
-          print("1000 messages takes ", end-start)
-       if analysedMessage["anomaly_score"] > 0.02:
-         # Replace print with insertion into database
-         print(analysedMessage["log_message"])
+        # Missing load balancing when queue is full
+        myLogmessage = requests.get("http://localhost:8000/logs/get_record").json()
+        logQueue.put(myLogmessage) # Put blocks/waits when the queue is full
     
 
-    
+
+
+# Method for analysing and handeling log messages in the queue.
+def simulateStreamAnalysis():
+    while True:
+        while logQueue.not_empty:
+            analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":logQueue.get(),"threshold":0.02 })
+            analysedMessage = analysedMessage.json()
+            if analysedMessage["anomaly_score"] > 0.02:
+                # Replace print with insertion into database
+                print(analysedMessage["log_message"])
+
+
 
 t = threading.Thread(target=simulateLogsteam)
 t.daemon = True
 t.start()
+t2 = threading.Thread(target=simulateStreamAnalysis)
+t2.daemon = True
+t2.start()
 
 
 
