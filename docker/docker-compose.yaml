@@ -41,7 +41,3 @@ services:
       dockerfile: ./docker/anomaly_detector/Dockerfile
     ports:
       - "8001:8001"
-
-
-
-   
