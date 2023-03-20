@@ -3,6 +3,7 @@ from fastapi import FastAPI
 import requests
 import json
 import threading
+import queue
 
 app = FastAPI()
 
@@ -27,22 +28,34 @@ def getAnomalyList(threshold: float = 0.02):
             myResult.append((i[0], anomalyScore))
     return myResult
 
+# Queue with our log messages
+logQueue = queue.Queue(1000)
 
+# Method for simlating getting constant steam of mesagges and inserting them into the queue
 def simulateLogsteam():
-    #Runs the method after amount of time, currently 0.08 second
-    t = threading.Timer(0.08, simulateLogsteam)
-    t.daemon = True
-    t.start()
-    myLogmessage = requests.get("http://localhost:8000/logs/get_record")
-    analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
-    analysedMessage = analysedMessage.json()
-    if analysedMessage["anomaly_score"] > 0.02:
-        # Replace print with insertion into database
-        print(analysedMessage["log_message"])
-
-simulateLogsteam()
+    while True:
+        # Missing load balancing when queue is full
+        myLogmessage = requests.get("http://localhost:8000/logs/get_record").json()
+        logQueue.put(myLogmessage) # Put blocks/waits when the queue is full
+    
 
 
-@app.get("/getNumOfThreads")
-def getNumOfThreads():
-    return threading.active_count()
+
+# Method for analysing and handeling log messages in the queue.
+def simulateStreamAnalysis():
+    while True:
+        while logQueue.not_empty:
+            analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":logQueue.get(),"threshold":0.02 })
+            analysedMessage = analysedMessage.json()
+            if analysedMessage["anomaly_score"] > 0.02:
+                # Replace print with insertion into database
+                print(analysedMessage["log_message"])
+
+
+
+t = threading.Thread(target=simulateLogsteam)
+t.daemon = True
+t.start()
+t2 = threading.Thread(target=simulateStreamAnalysis)
+t2.daemon = True
+t2.start()
