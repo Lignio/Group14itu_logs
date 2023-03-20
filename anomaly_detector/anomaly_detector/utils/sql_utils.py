@@ -3,6 +3,7 @@ from sqlmodel import create_engine
 
 from anomaly_detector.utils.utility import get_env_variables
 from anomaly_detector.database.tables import Logs
+from anomaly_detector.database.tables import Anomalies
 
 def get_database_connection_string():
     env = get_env_variables()
@@ -23,7 +24,9 @@ def get_database_engine():
 def empty_database_tables():
     engine = get_database_engine()
     with Session(engine) as session:
-        delete_table = delete(Logs)
-        session.exec(delete_table)
+        delete_logs = delete(Logs)
+        delete_anomalies = delete(Anomalies)
+        session.exec(delete_logs)
+        session.exec(delete_anomalies)
         session.commit()
     
