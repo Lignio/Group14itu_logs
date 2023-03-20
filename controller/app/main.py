@@ -3,7 +3,6 @@ from fastapi import FastAPI
 import requests
 import json
 
-# hello
 app = FastAPI()
 
 
