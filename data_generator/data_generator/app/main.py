@@ -5,17 +5,25 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from data_generator.database.data_loader import DataLoader
+from data_generator.database.datawriter import DataWriter
 from data_generator.data.log_parser import LogParser
+from data_generator.database.tables import Anomalies
 
 
 app = FastAPI()
 data_loader = DataLoader()
+data_writer = DataWriter()
 ids = data_loader.get_ids()
 if len(ids) == 0:
     log_parser = LogParser()
     log_parser()
     ids = data_loader.get_ids()
 
+
+class Anomaly(BaseModel):
+    log_time: str
+    log_message: str
+    anomaly_score: float 
 
 @app.get("/health")
 def health():
@@ -25,6 +33,18 @@ def health():
 @app.get("/logs/get_record")
 def get_record():
     return data_loader.get_log_message(random.choice(ids)).log_message
+
+@app.get("/anomalies/get_anomaly_list")
+def get_anomaly_list():
+    print(data_loader.get_all_anomalies())
+    return data_loader.get_all_anomalies()
+
+@app.post("/anomalies/post_anomaly")
+def post_anomaly(anomaly: Anomaly):
+    new_post = Anomalies(**anomaly.dict())
+    data_writer.write_single_row_to_database(new_post)
+    return anomaly
+
 
 
 # Function for getting the first 1000 logs in the database

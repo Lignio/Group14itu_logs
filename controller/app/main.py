@@ -1,5 +1,6 @@
 from typing import Union
 from fastapi import FastAPI
+from pydantic import BaseModel
 import requests
 import json
 import threading
@@ -7,6 +8,10 @@ import queue
 
 app = FastAPI()
 
+class Anomaly(BaseModel):
+    log_time: str
+    log_message: str
+    anomaly_score: float 
 
 # Function that calls the data-generator api for a list of the first 1000 logs and then calls the anomaly-detector api
 # to check which of those logs are a anomaly. It then returns a list of all anomalies and there anomaly-score.
@@ -51,6 +56,26 @@ def simulateStreamAnalysis():
                 # Replace print with insertion into database
                 print(analysedMessage["log_message"])
 
+
+
+@app.post("/postAnomaly")
+def postAnomaly(anomaly:Anomaly):
+    #while True:
+        #while logQueue.not_empty:
+    # myLogmessage = requests.get("http://localhost:8000/logs/get_record")
+    # analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
+    # analysedMessage = analysedMessage.json()
+    # anomaly = Anomaly(log_time="10", log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
+    # if analysedMessage["anomaly_score"] > 0.02:
+                # Replace print with insertion into database
+    requests.post('http://localhost:8000/anomalies/post_anomaly', params={"anomaly":anomaly})
+                #print(analysedMessage["log_message"])
+    return anomaly
+
+@app.get("/getAnomalies")
+def getAnomalies():
+    response = requests.get('http://localhost:8000/logs/get_anomaly_list')
+    return response.json
 
 
 t = threading.Thread(target=simulateLogsteam)
