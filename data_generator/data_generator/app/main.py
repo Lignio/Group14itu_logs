@@ -39,13 +39,13 @@ def get_anomaly_list():
     print(data_loader.get_all_anomalies())
     return data_loader.get_all_anomalies()
 
-@app.post("/anomalies/post_anomaly")
-def post_anomaly(anomaly: Anomaly):
+
+@app.post("/anomalies/post_anomaly",response_model=Anomaly)
+def post_anomaly(log_message:str, anomaly_score:float):
+    anomaly = Anomaly(log_time="10",log_message=log_message, anomaly_score=anomaly_score)
     new_post = Anomalies(**anomaly.dict())
     data_writer.write_single_row_to_database(new_post)
     return anomaly
-
-
 
 # Function for getting the first 1000 logs in the database
 @app.get("/logs/LogList/")

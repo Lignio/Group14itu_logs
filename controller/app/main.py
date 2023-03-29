@@ -47,40 +47,39 @@ def simulateLogsteam():
 
 
 # Method for analysing and handeling log messages in the queue.
-def simulateStreamAnalysis():
-    while True:
-        while logQueue.not_empty:
-            analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":logQueue.get(),"threshold":0.02 })
-            analysedMessage = analysedMessage.json()
-            if analysedMessage["anomaly_score"] > 0.02:
+# def simulateStreamAnalysis():
+#     while True:
+#         while logQueue.not_empty:
+#             analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":logQueue.get(),"threshold":0.02 })
+#             analysedMessage = analysedMessage.json()
+#             if analysedMessage["anomaly_score"] > 0.02:
                 # Replace print with insertion into database
-                print(analysedMessage["log_message"])
+                # print(analysedMessage["log_message"])
 
 
 
 @app.post("/postAnomaly")
-def postAnomaly(anomaly:Anomaly):
+def postAnomaly():
     #while True:
         #while logQueue.not_empty:
-    # myLogmessage = requests.get("http://localhost:8000/logs/get_record")
-    # analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
-    # analysedMessage = analysedMessage.json()
-    # anomaly = Anomaly(log_time="10", log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
-    # if analysedMessage["anomaly_score"] > 0.02:
-                # Replace print with insertion into database
-    requests.post('http://localhost:8000/anomalies/post_anomaly', params={"anomaly":anomaly})
+    myLogmessage = requests.get("http://localhost:8000/logs/get_record")
+    analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
+    analysedMessage = analysedMessage.json()
+    if analysedMessage["anomaly_score"] > 0.000000002:
+              # Replace print with insertion into database
+        requests.post('http://localhost:8000/anomalies/post_anomaly', params={"log_message":analysedMessage["log_message"], "anomaly_score":analysedMessage["anomaly_score"] })
                 #print(analysedMessage["log_message"])
-    return anomaly
+    return Anomaly(log_time="10", log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
 
 @app.get("/getAnomalies")
 def getAnomalies():
-    response = requests.get('http://localhost:8000/logs/get_anomaly_list')
-    return response.json
+    response = requests.get('http://localhost:8000/anomalies/get_anomaly_list')
+    return response.json()
 
 
-t = threading.Thread(target=simulateLogsteam)
-t.daemon = True
-t.start()
-t2 = threading.Thread(target=simulateStreamAnalysis)
-t2.daemon = True
-t2.start()
+# t = threading.Thread(target=simulateLogsteam)
+# t.daemon = True
+# t.start()
+# t2 = threading.Thread(target=simulateStreamAnalysis)
+# t2.daemon = True
+# t2.start()
