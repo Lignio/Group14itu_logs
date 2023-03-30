@@ -1,7 +1,7 @@
 from sqlalchemy.future.engine import Engine
 from sqlmodel import Session
 
-from data_generator.utils.sql_utils import get_database_engine
+from controller.utils.sql_utils import get_database_engine
 
 class DataWriter():
     def __init__(self):

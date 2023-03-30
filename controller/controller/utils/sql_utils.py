@@ -1,9 +1,9 @@
 from sqlmodel import Session, delete
 from sqlmodel import create_engine
 
-from data_generator.utils.utility import get_env_variables
-from data_generator.database.tables import Logs
-from data_generator.database.tables import Anomalies
+from controller.utils.utility import get_env_variables
+from controller.database.tables import Logs
+from controller.database.tables import Anomalies
 
 
 def get_database_connection_string():

@@ -30,22 +30,11 @@ def health():
     return {"status": "ok"}
 
 
+
 @app.get("/logs/get_record")
 def get_record():
     return data_loader.get_log_message(random.choice(ids)).log_message
 
-@app.get("/anomalies/get_anomaly_list")
-def get_anomaly_list():
-    print(data_loader.get_all_anomalies())
-    return data_loader.get_all_anomalies()
-
-
-@app.post("/anomalies/post_anomaly",response_model=Anomaly)
-def post_anomaly(log_message:str, anomaly_score:float):
-    anomaly = Anomaly(log_time="10",log_message=log_message, anomaly_score=anomaly_score)
-    new_post = Anomalies(**anomaly.dict()) #create instance of Anomalies from data in request body
-    data_writer.write_single_row_to_database(new_post)
-    return anomaly
 
 # Function for getting the first 1000 logs in the database
 @app.get("/logs/LogList/")

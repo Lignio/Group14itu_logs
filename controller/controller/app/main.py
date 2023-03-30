@@ -6,9 +6,9 @@ import json
 import threading
 import queue
 
-from data_generator.database.data_loader import DataLoader
-from data_generator.database.datawriter import DataWriter
-from data_generator.database.tables import Anomalies
+from controller.database.data_loader import DataLoader
+from controller.database.datawriter import DataWriter
+from controller.database.tables import Anomalies
 
 
 app = FastAPI()
@@ -62,47 +62,56 @@ def simulateStreamAnalysis():
             analysedMessage = analysedMessage.json()
             if analysedMessage["anomaly_score"] > 0.02:
                 #Replace print with insertion into database
-                requests.post('http://localhost:8000/anomalies/post_anomaly', params={"log_message":analysedMessage["log_message"], "anomaly_score":analysedMessage["anomaly_score"] })
-                #print(analysedMessage["log_message"])
+                print(analysedMessage["log_message"])
         return Anomaly(log_time="10", log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
 
 
 
 #Function to post an anomaly into db, by getting anomaly from stream and sending the parameters to data_generator, which handles the final insertion into Anomaly db table
-@app.post("/postAnomaly")
+#Jakob : this function is now outdated - the real endpoint that handles insertion into db is "/anomalies/post_anomaly"
+#Jakob : I kept this endpoint in case it is used by other
+@app.post("/postAnomaly_outdated")
 def postAnomaly():
-    #while True:
-        #while logQueue.not_empty:
-    myLogmessage = requests.get("http://localhost:8000/logs/get_record")
-    analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
-    analysedMessage = analysedMessage.json()
-    if analysedMessage["anomaly_score"] > 0.000000002:
+    while True:
+        while logQueue.not_empty:
+            myLogmessage = requests.get("http://localhost:8000/logs/get_record")
+            analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
+            analysedMessage = analysedMessage.json()
+            if analysedMessage["anomaly_score"] > 0.02:
               # Replace print with insertion into database
-        requests.post('http://localhost:8000/anomalies/post_anomaly', params={"log_message":analysedMessage["log_message"], "anomaly_score":analysedMessage["anomaly_score"] })
-                #print(analysedMessage["log_message"])
-    return Anomaly(log_time="10", log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
-
-#Function for getting all anomalies inserted into Anomalies db table
-@app.get("/getAnomalies")
-def getAnomalies():
-    response = requests.get('http://localhost:8000/anomalies/get_anomaly_list')
-    return response.json()
+                #requests.post('http://localhost:8000/anomalies/post_anomaly', params={"log_message":analysedMessage["log_message"], "anomaly_score":analysedMessage["anomaly_score"] })
+                print(analysedMessage["log_message"])
+            return Anomaly(log_time="10", log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
 
 
 
 #----------------------------------------------------------------------------------------------
-@app.get("/controlleranomalies/get_anomaly_list")
+@app.get("/anomalies/get_anomaly_list")
 def get_anomaly_list():
 
     return data_loader.get_all_anomalies()
 
 
-@app.post("/controlleranomalies/post_anomaly",response_model=Anomaly)
-def post_anomaly(log_message:str, anomaly_score:float):
+#Endpoint for forcing a custom anomaly into the db - for testing purposes
+@app.post("/anomalies/post_test_anomaly",response_model=Anomaly)
+def post_test_anomaly(log_message:str, anomaly_score:float):
     anomaly = Anomaly(log_time="10",log_message=log_message, anomaly_score=anomaly_score)
     new_post = Anomalies(**anomaly.dict())
     data_writer.write_single_row_to_database(new_post)
     return anomaly
+
+#Endpoint for getting a log from the datagenerator, and the inserting into the db if it is an anomaly
+@app.post("/anomalies/post_anomaly",response_model=Anomaly)
+def post_anomaly():
+    myLogmessage = requests.get("http://localhost:8000/logs/get_record")
+    analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
+    analysedMessage = analysedMessage.json()
+    if analysedMessage["anomaly_score"] > 0.02:
+        anomaly = Anomaly(log_time=analysedMessage["log_time"], log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
+        new_post = Anomalies(**anomaly.dict())
+        data_writer.write_single_row_to_database(new_post)
+    return analysedMessage
+
 
 @app.post("/postAnomalyFromSimul")
 def test():
@@ -111,9 +120,9 @@ def test():
 
 
 
-t = threading.Thread(target=simulateLogsteam)
-t.daemon = True
-t.start()
-t2 = threading.Thread(target=simulateStreamAnalysis)
-t2.daemon = True
-t2.start()
+#t = threading.Thread(target=simulateLogsteam)
+#t.daemon = True
+#t.start()
+#t2 = threading.Thread(target=simulateStreamAnalysis)
+#t2.daemon = True
+#t2.start()
