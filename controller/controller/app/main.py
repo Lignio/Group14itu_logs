@@ -6,6 +6,8 @@ import json
 import threading
 import queue
 
+from datetime import datetime
+
 from controller.database.data_loader import DataLoader
 from controller.database.datawriter import DataWriter
 from controller.database.tables import Anomalies
@@ -103,14 +105,20 @@ def post_test_anomaly(log_message:str, anomaly_score:float):
 #Endpoint for getting a log from the datagenerator, and the inserting into the db if it is an anomaly
 @app.post("/anomalies/post_anomaly",response_model=Anomaly)
 def post_anomaly():
-    myLogmessage = requests.get("http://localhost:8000/logs/get_record")
-    analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
+    myLogmessage = requests.get("http://data_generator:8000/logs/get_record")
+    analysedMessage = requests.get('http://anomaly_detector:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
     analysedMessage = analysedMessage.json()
+
+    dt = datetime.now()
+    dts = dt.strftime('%d/%m/%Y')
+    
+
+    anomaly = Anomaly(log_time=dts, log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
     if analysedMessage["anomaly_score"] > 0.02:
-        anomaly = Anomaly(log_time=analysedMessage["log_time"], log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
+        #anomaly = Anomaly(log_time=analysedMessage["log_time"], log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
         new_post = Anomalies(**anomaly.dict())
         data_writer.write_single_row_to_database(new_post)
-    return analysedMessage
+    return anomaly
 
 
 @app.post("/postAnomalyFromSimul")
