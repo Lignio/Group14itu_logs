@@ -3,5 +3,73 @@ h1, h2, h3, h4, h5, h6, P {
 }
 
 .SideBTN{
-    width: 18vw;
+    width: 16vw;
+    text-align: center;
+    color: white;
+    background-color: #141446;
+    border: none;
 }
+
+.SideElement {
+    display: flex;display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
+}
+
+#background {
+    background-color: f0f3f6;
+}
+
+.cardText {
+    margin-top: 10px;
+    margin-left: 10px;
+}
+
+.cardLine {
+    display: inline-block;
+
+}
+
+.btn-secondary:hover {
+    background-color: #1f2d60;
+}
+
+#Sidebar {
+    background-color: #141446;
+    padding-top: 2%;
+    width: 20vw;
+}
+
+.FontLogo {
+    font-family: Inter, sans-serif;
+    font-style: italic;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: white;
+}
+
+
+.FontMain {
+    font-family: Inter, sans-serif;
+    font-weight: 500;
+}
+
+.FontBold {
+    font-family: Inter, sans-serif;
+    font-weight: 520;
+}
+
+.FontBlack {
+    color: black;
+}
+
+.FontWhite {
+    color: white;
+}
+
+#Logo {
+    text-align: center;
+}
+
+

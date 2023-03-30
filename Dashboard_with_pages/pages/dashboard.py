@@ -13,8 +13,9 @@ from .testdata import genLists
 dash.register_page(__name__)
 
 
-jsonLst = requests.get("http://localhost:8002/getAnomalyList", params = {"threshold":0.02})
-dataList = jsonLst.json()
+#jsonLst = requests.get("http://localhost:8002/getAnomalyList", params = {"threshold":0.02})
+#dataList = jsonLst.json()
+dataList = [["A",1],["B",2],["C",3]]
 anomalyScoreList = []
 
 for i in dataList: 
@@ -49,7 +50,7 @@ layout = html.Div(children=[
     html.Div(id="Main-panel",children=[       
 
         html.Div(
-            html.H1("Log anomaly dashboard"),
+            html.H1("Anomaly Dashboard", className="FontBold"),
             id="TitleDIV"
         ),
 
@@ -77,18 +78,38 @@ layout = html.Div(children=[
             #via dcc callbacks.
             html.Div(children=[
                 html.Div(children=[
-
-                    html.H3("Anomalies", style={"margin-left": "20px"}),
-                    html.H1(len(lst1), style={"margin-left": "20px"}),
-                    html.H2("00%", style={"margin-left": "20px"})],
-                    style={"margin":"15px","background-color":"#e0e0d1","height":"30vh","width":"25%","outline-color" :"#b7b795","outline-style" : "solid", "outline-width" : "3px"}
+                    html.Div(children=[
+                        html.I(className="bi bi-exclamation-circle fa-2x cardText cardLine", style={"float":"left"}),
+                        html.I(className="bi bi-three-dots-vertical fa-2x cardText cardLine", style={"float":"right"})]
+                    ),
+                        html.H3("Anomalies", className="cardText card-title cardLine FontMain"),
+                    html.Div(children=[
+                        html.H1(len(lst1), className="cardText card-subtitle cardLine FontMain", style={"float":"left","padding-top":"15px","font-size":"45px"}),
+                        html.Div(children=[
+                            html.I(className="bi bi-graph-up fa-1x cardLine", style={"float":"right"}),
+                            html.H2("00%", className="cardText card-subtitle cardLine FontMain", style={"float":"right","padding-top":"25px"})
+                        ]),
+                        
+                    ])],        
+                    style={"margin":"5px","background-color":"#ffffff","height":"37vh","width":"25%","border":"none"},
+                    className="card"
                 ),
                 html.Div(children=[
+html.Div(children=[
+                        html.I(className="bi bi-exclamation-triangle fa-2x cardText cardLine", style={"float":"left"}),
+                        html.I(className="bi bi-three-dots-vertical fa-2x cardText cardLine", style={"float":"right"})]
+                    ),
+                        html.H3("False-Positives", className="cardText card-title cardLine FontMain"),
+                    html.Div(children=[
+                        html.H1(len(lst1), className="cardText card-subtitle cardLine FontMain", style={"float":"left","padding-top":"15px","font-size":"45px"}),
+                        html.Div(children=[
+                            html.I(className="bi bi-graph-up fa-1x cardLine", style={"float":"right"}),
+                            html.H2("00%", className="cardText card-subtitle cardLine FontMain", style={"float":"right","padding-top":"25px"})
+                        ]),
 
-                    html.H3("Logs", style={"margin-left": "20px"}),
-                    html.H1("0", style={"margin-left": "20px"}),
-                    html.H2("00%", style={"margin-left": "20px"})],
-                    style={"margin":"15px","background-color":"#e0e0d1","height":"30vh","width":"25%","outline-color" :"#b7b795","outline-style" : "solid", "outline-width" : "3px"}
+                    ])],        
+                    style={"margin":"5px","background-color":"#ffffff","height":"37vh","width":"25%","border":"none"},
+                    className="card"
                 ),
                 html.Div(children=[
                     html.H5("Anomaly Inbox", style={"margin-left": "20px"}),
@@ -136,7 +157,7 @@ layout = html.Div(children=[
         )
 
         #Style customization for the whole page container:
-],style={"width" : "85vw", "margin-left":"20px"})], style={"display":"flex","width" : "80vw"})
+],style={"width" : "85vw", "margin-left":"20px"})], style={"display":"flex","width" : "80vw", "background-color":"#f0f3f6","padding-top":"20px"})
 
 
 #Callbacks define the functionality of the dashboard.
