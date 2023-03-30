@@ -6,7 +6,15 @@ import json
 import threading
 import queue
 
+from data_generator.database.data_loader import DataLoader
+from data_generator.database.datawriter import DataWriter
+from data_generator.database.tables import Anomalies
+
+
 app = FastAPI()
+data_loader = DataLoader()
+data_writer = DataWriter()
+
 
 class Anomaly(BaseModel):
     log_time: str
@@ -46,18 +54,21 @@ def simulateLogsteam():
 
 
 
-# Method for analysing and handeling log messages in the queue.
-# def simulateStreamAnalysis():
-#     while True:
-#         while logQueue.not_empty:
-#             analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":logQueue.get(),"threshold":0.02 })
-#             analysedMessage = analysedMessage.json()
-#             if analysedMessage["anomaly_score"] > 0.02:
-                # Replace print with insertion into database
-                # print(analysedMessage["log_message"])
+#Method for analysing and handeling log messages in the queue.
+def simulateStreamAnalysis():
+    while True:
+        while logQueue.not_empty:
+            analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":logQueue.get(),"threshold":0.02 })
+            analysedMessage = analysedMessage.json()
+            if analysedMessage["anomaly_score"] > 0.02:
+                #Replace print with insertion into database
+                requests.post('http://localhost:8000/anomalies/post_anomaly', params={"log_message":analysedMessage["log_message"], "anomaly_score":analysedMessage["anomaly_score"] })
+                #print(analysedMessage["log_message"])
+        return Anomaly(log_time="10", log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
 
 
 
+#Function to post an anomaly into db, by getting anomaly from stream and sending the parameters to data_generator, which handles the final insertion into Anomaly db table
 @app.post("/postAnomaly")
 def postAnomaly():
     #while True:
@@ -71,15 +82,38 @@ def postAnomaly():
                 #print(analysedMessage["log_message"])
     return Anomaly(log_time="10", log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
 
+#Function for getting all anomalies inserted into Anomalies db table
 @app.get("/getAnomalies")
 def getAnomalies():
     response = requests.get('http://localhost:8000/anomalies/get_anomaly_list')
     return response.json()
 
 
-# t = threading.Thread(target=simulateLogsteam)
-# t.daemon = True
-# t.start()
-# t2 = threading.Thread(target=simulateStreamAnalysis)
-# t2.daemon = True
-# t2.start()
+
+#----------------------------------------------------------------------------------------------
+@app.get("/controlleranomalies/get_anomaly_list")
+def get_anomaly_list():
+
+    return data_loader.get_all_anomalies()
+
+
+@app.post("/controlleranomalies/post_anomaly",response_model=Anomaly)
+def post_anomaly(log_message:str, anomaly_score:float):
+    anomaly = Anomaly(log_time="10",log_message=log_message, anomaly_score=anomaly_score)
+    new_post = Anomalies(**anomaly.dict())
+    data_writer.write_single_row_to_database(new_post)
+    return anomaly
+
+@app.post("/postAnomalyFromSimul")
+def test():
+    simulateStreamAnalysis()
+
+
+
+
+t = threading.Thread(target=simulateLogsteam)
+t.daemon = True
+t.start()
+t2 = threading.Thread(target=simulateStreamAnalysis)
+t2.daemon = True
+t2.start()

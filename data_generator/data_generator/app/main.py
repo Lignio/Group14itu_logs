@@ -43,7 +43,7 @@ def get_anomaly_list():
 @app.post("/anomalies/post_anomaly",response_model=Anomaly)
 def post_anomaly(log_message:str, anomaly_score:float):
     anomaly = Anomaly(log_time="10",log_message=log_message, anomaly_score=anomaly_score)
-    new_post = Anomalies(**anomaly.dict())
+    new_post = Anomalies(**anomaly.dict()) #create instance of Anomalies from data in request body
     data_writer.write_single_row_to_database(new_post)
     return anomaly
 
