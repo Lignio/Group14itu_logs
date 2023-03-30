@@ -7,14 +7,15 @@ import dash_bootstrap_components as dbc
 import random
 import requests
 from plotly.graph_objs import *
-from .testdata import genLists
+from pages.testdata import genLists
 
 #Separate pages need to be registered like this to show up in the page container in app.py
 dash.register_page(__name__)
 
 
-jsonLst = requests.get("http://localhost:8002/getAnomalyList", params = {"threshold":0.02})
-dataList = jsonLst.json()
+#jsonLst = requests.get("http://localhost:8002/getAnomalyList", params = {"threshold":0.02})
+#dataList = jsonLst.json()
+dataList = [["A",1],["B",2],["C",3]]
 anomalyScoreList = []
 
 for i in dataList: 
@@ -40,7 +41,7 @@ lst1, lst2 = genLists()
 ScatterPlotFig = px.scatter(x=lst1,y=lst2,title="Scatter plot of name lengths").update_layout(xaxis_title="Name length",yaxis_title="Name count",margin=dict(l=20, r=20, t=30, b=20))
 PieChartFig = px.pie(values=countvalues(), names=["0.02 - 0.024", "0.024 - 0.026", ">0.026"], title="Piechart for data").update_layout(margin=dict(l=20, r=20, t=30, b=20))
 
-testDf = pd.read_csv('Dashboard_with_pages\TestCSVLg.csv',delimiter=';')
+testDf = pd.read_csv('Dashboard_with_pages/TestCSVLg.csv',delimiter=';')
 
 #Layout = html.Div defines the out container of the whole page. 
 #"children =[]" is needed when more than 1 html element is present within the container.

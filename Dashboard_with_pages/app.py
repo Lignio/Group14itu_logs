@@ -8,9 +8,9 @@ import random
 from plotly.graph_objs import *
 import requests
 
-##The app.py page does not actually contain the pages that are being loaded, it is more so a container
-#for pages. It only contains the sidebar (containing buttons to navigate) and a page_container.
-#The page container then loads the actual pages from the pages directory.
+# The app.py page does not actually contain the pages that are being loaded, it is more so a container
+# for pages. It only contains the sidebar (containing buttons to navigate) and a page_container.
+# The page container then loads the actual pages from the pages directory.
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True)
 
 
@@ -20,22 +20,9 @@ app.layout = html.Div(children=[
         html.Div(children=[
             html.H2("Systematic"),
 
-            ##The modal button is only for showing a pop up and the callback associated with a pop up.
-            #It should be deleted at some point.
-            dbc.Button("Modal", color="primary",id="ModalBTN"),
-
-            ##The modal is the popup alerting the users of new anomalies. So far we believe that
-            #the actual location of the modal doesn't matter, as it always pops up in the same place.
-            dbc.Modal(
-                [
-                    dbc.ModalHeader(dbc.ModalTitle("Header")),
-                    dbc.ModalBody("A small modal."),
-                ],
-                id="modal-sm",
-                size="sm",
-                is_open=False,
-                )
-            ]),
+            # The alert button is only for development purposes.
+            dbc.Button("Alert", color="primary",id="AlertBTN"),
+        ]),
         html.Div(
         [
             html.Div(
@@ -45,7 +32,7 @@ app.layout = html.Div(children=[
             for page in dash.page_registry.values()
         ]
     ),
-
+    
     ],style={"background-color" : "#e0e0d1","width" : "20vw","height" : "160vh"}),
 
 
@@ -55,19 +42,38 @@ app.layout = html.Div(children=[
 
             dash.page_container
 
-    ])], style={"display":"flex","width" : "100vw"})
+    ]),
+    dbc.Alert(
+        [
+            html.H4("New anomaly detected. \U0001f6d1", className="alert-heading"),
+            html.P(
+                "Choose to review it now or later."
+            ),
+            html.Div(
+                [dbc.Button(
+                    "Not now", id="later", className="ms-auto"
+                ),
+                dbc.Button(
+                    "Go to anomaly", id="goTo", className="ms-auto", n_clicks=0
+                )]
+            ),
+        ],
+        id="alertMsg",
+        is_open=True,
+    ),
+    ], style={"display":"flex","width" : "100vw"})
 
 
-def toggle_modal(n1, is_open):
-    if n1:
+def toggle_alert(n1, n2, is_open):
+    if n1 or n2:
         return not is_open
     return is_open
 
 app.callback(
-    Output("modal-sm", "is_open"),
-    Input("ModalBTN", "n_clicks"),
-    State("modal-sm", "is_open"),
-)(toggle_modal)
+    Output("alertMsg", "is_open"),
+    [Input("AlertBTN", "n_clicks"), Input("later", "n_clicks")],
+    State("alertMsg", "is_open"),
+)(toggle_alert)
 
 #Debug true allows for hot reloading while writing code.
 if __name__ == "__main__":

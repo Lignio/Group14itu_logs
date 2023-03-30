@@ -7,13 +7,13 @@ from datetime import date
 import dash_bootstrap_components as dbc
 import random
 from plotly.graph_objs import *
-from .testdata import genLists
+from pages.testdata import genLists
 
 
 dash.register_page(__name__)
 
 #Not an actual page yet. Just for showing that pages can be changed.
-testDf = pd.read_csv('Dashboard_with_pages\TestCSVLg.csv',delimiter=';')
+testDf = pd.read_csv('Dashboard_with_pages/TestCSVLg.csv',delimiter=';')
 
 
 layout = html.Div(children=[

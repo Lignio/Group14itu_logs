@@ -30,8 +30,8 @@ dependent_packages = {
     "loguru": ("0.6.0", CORE),
     "python-dotenv": ("0.21.0", CORE),
     "sqlmodel": ("0.0.8", CORE),
-    #"psycopg2": ("2.9.5", CORE),
-    "psycopg2-binary": ("2.9.5", CORE),
+    "psycopg2": ("2.9.5", CORE),
+    #"psycopg2-binary": ("2.9.5", CORE),
     "fastapi": ("0.92.0", CORE),
     "uvicorn": ("0.20.0", CORE),
     # For tests
