@@ -126,10 +126,6 @@ def post_anomaly():
     return anomaly
 
 
-@app.post("/postAnomalyFromSimul")
-def test():
-    simulateStreamAnalysis()
-
 
 
 
