@@ -95,9 +95,14 @@ def get_anomaly_list():
 
 
 #Endpoint for forcing a custom anomaly into the db - for testing purposes
+#Note: this does not account for the anomaly threshold - this is purely for inserting ANYTHING into the database for testing
 @app.post("/anomalies/post_test_anomaly",response_model=Anomaly)
 def post_test_anomaly(log_message:str, anomaly_score:float):
-    anomaly = Anomaly(log_time="10",log_message=log_message, anomaly_score=anomaly_score)
+
+    dt = datetime.now()
+    dts = dt.strftime('%d/%m/%Y')
+
+    anomaly = Anomaly(log_time=dts,log_message=log_message, anomaly_score=anomaly_score)
     new_post = Anomalies(**anomaly.dict())
     data_writer.write_single_row_to_database(new_post)
     return anomaly
