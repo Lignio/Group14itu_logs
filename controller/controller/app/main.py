@@ -29,12 +29,12 @@ class Anomaly(BaseModel):
 def getAnomalyList(threshold: float = 0.02):
     myResult = []
     # Retrives the list from the datagenerator
-    request = requests.get("http://localhost:8000/logs/LogList")
+    request = requests.get("http://data_generator:8000/logs/LogList")
     # Deserialize it from json
     dataList = request.json()
     for i in dataList:
         response = requests.get(
-            "http://localhost:8001/logs/getPredict/",
+            "http://anomaly_detector:8001/logs/getPredict/",
             params={"log_message": i[0], "threshold": threshold},
         )
         answer = response.json()
@@ -50,7 +50,7 @@ logQueue = queue.Queue(1000)
 def simulateLogsteam():
     while True:
         # Missing load balancing when queue is full
-        myLogmessage = requests.get("http://localhost:8000/logs/get_record").json()
+        myLogmessage = requests.get("http://data_generator:8000/logs/get_record").json()
         logQueue.put(myLogmessage) # Put blocks/waits when the queue is full
     
 
@@ -60,29 +60,29 @@ def simulateLogsteam():
 def simulateStreamAnalysis():
     while True:
         while logQueue.not_empty:
-            analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":logQueue.get(),"threshold":0.02 })
+            analysedMessage = requests.get('http://anomaly_detector:8001/logs/getPredict', params={"log_message":logQueue.get(),"threshold":0.02 })
             analysedMessage = analysedMessage.json()
             if analysedMessage["anomaly_score"] > 0.02:
                 #Replace print with insertion into database
-                print(analysedMessage["log_message"])
+                #print(analysedMessage["log_message"])
+                return post_test_anomaly(analysedMessage["log_message"], analysedMessage["anomaly_score"])
         return Anomaly(log_time="10", log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
 
 
 
 #Function to post an anomaly into db, by getting anomaly from stream and sending the parameters to data_generator, which handles the final insertion into Anomaly db table
-#Jakob : this function is now outdated - the real endpoint that handles insertion into db is "/anomalies/post_anomaly"
-#Jakob : I kept this endpoint in case it is used by other
-@app.post("/postAnomaly_outdated")
+@app.post("/postAnomaly_stream")
 def postAnomaly():
     while True:
         while logQueue.not_empty:
-            myLogmessage = requests.get("http://localhost:8000/logs/get_record")
-            analysedMessage = requests.get('http://localhost:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
+            myLogmessage = requests.get("http://data_generator:8000/logs/get_record")
+            analysedMessage = requests.get('http://anomaly_detector:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
             analysedMessage = analysedMessage.json()
             if analysedMessage["anomaly_score"] > 0.02:
               # Replace print with insertion into database
                 #requests.post('http://localhost:8000/anomalies/post_anomaly', params={"log_message":analysedMessage["log_message"], "anomaly_score":analysedMessage["anomaly_score"] })
-                print(analysedMessage["log_message"])
+                #print(analysedMessage["log_message"])
+                return post_test_anomaly(analysedMessage["log_message"], analysedMessage["anomaly_score"])
             return Anomaly(log_time="10", log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
 
 
@@ -129,9 +129,9 @@ def post_anomaly():
 
 
 
-#t = threading.Thread(target=simulateLogsteam)
-#t.daemon = True
-#t.start()
-#t2 = threading.Thread(target=simulateStreamAnalysis)
-#t2.daemon = True
-#t2.start()
+t = threading.Thread(target=simulateLogsteam)
+t.daemon = True
+t.start()
+t2 = threading.Thread(target=simulateStreamAnalysis)
+t2.daemon = True
+t2.start()
