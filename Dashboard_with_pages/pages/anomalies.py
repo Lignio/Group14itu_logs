@@ -13,9 +13,13 @@ from datetime import datetime, timedelta
 
 dash.register_page(__name__)
 
+
 # Not an actual page yet. Just for showing that pages can be changed.
-orinalDf = pd.read_csv("Dashboard_with_pages\TestCSVLg.csv", delimiter=";")
-copyDf = orinalDf
+originalDF = pd.read_csv("Dashboard_with_pages\TestCSVLg.csv", delimiter=";")
+originalDF["Date"] = pd.to_datetime(
+    originalDF["Date"], format="%d/%m/%Y", dayfirst=True
+)
+copyDf = originalDF
 
 
 layout = html.Div(
@@ -76,20 +80,18 @@ layout = html.Div(
 
 
 def calculate_interval(value):
-    today = date.today()
+    today = pd.Timestamp("today").floor("D")
     match value:
         case "Today":
             return (today, today)
         case "Yesterday":
-            return (today - timedelta(days=1), today - timedelta(days=1))
+            return (today + pd.offsets.Day(-1), today + pd.offsets.Day(-1))
         case "Last two days":
-            return (today, today - timedelta(days=1))
+            return (today, today + pd.offsets.Day(-1))
         case "This week":
-            return (today, today - timedelta(days=6))
-
-
-def is_in_interval(interval, dateDiscovered):
-    return interval[0] <= dateDiscovered <= interval[1]
+            return (today, today + pd.offsets.Day(-6))
+        case "All time":
+            return (today, pd.Timestamp(year=2000, month=1, day=1))
 
 
 @callback(
@@ -98,5 +100,7 @@ def is_in_interval(interval, dateDiscovered):
 def adjust_table_to_interval(value):
     interval = calculate_interval(value)
 
-    copyDf = orinalDf[is_in_interval(interval, orinalDf.Date)]
-    return 0
+    copyDf = originalDF[
+        (originalDF["Date"] <= interval[0]) & (originalDF["Date"] >= interval[1])
+    ]
+    return interval
