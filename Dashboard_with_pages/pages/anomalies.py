@@ -92,7 +92,7 @@ def calculate_interval(value):
         case "This month":
             return (today, today + pd.offsets.MonthEnd(-1))
         case "All time":
-            return (today, pd.Timestamp(year=2000, month=1, day=1))
+            return (today, pd.Timestamp(year=1999, month=1, day=1))
 
 
 @callback(
