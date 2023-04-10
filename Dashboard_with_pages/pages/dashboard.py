@@ -55,8 +55,19 @@ layout = html.Div(children=[
         ),
 
         html.Div(
-            #This breadcrumb is simply hardcoded for now. Should probably be fixed
-            html.P("Homepage / page / page")
+            #This is the breadcrumb, made using Boostrap.
+            #The current href's lead nowhere, but can be easily changed to do so.
+            html.Nav(
+                html.Ol(className="breadcrumb", children=[
+                    html.Li(className="breadcrumb-item", children=[
+                        html.A("Home", href="./home.py", style={"text-decoration":"none", "color":"#6c757d"})
+                    ]),
+                    html.Li(className="breadcrumb-item", children=[
+                        html.A("Anomaly Detector", href="", style={"text-decoration":"none", "color":"#6c757d"})
+                    ]),
+                    html.Li("Dashboard", className="breadcrumb-item active FontBold", style={"color":"black"})
+                ])
+            )
         ),
 
         html.Div(children=[
@@ -79,32 +90,30 @@ layout = html.Div(children=[
             html.Div(children=[
                 html.Div(children=[
                     html.Div(children=[
-                        html.I(className="bi bi-exclamation-circle fa-2x cardText cardLine", style={"float":"left"}),
-                        html.I(className="bi bi-three-dots-vertical fa-2x cardText cardLine", style={"float":"right"})]
+                        html.I(className="bi bi-exclamation-circle fa-2x cardText cardLine FontBold IconBold", style={"float":"left"}),
+                        html.I(className="bi bi-three-dots-vertical fa-2x cardText cardLine FontBold", style={"float":"right"})]
                     ),
-                        html.H3("Anomalies", className="cardText card-title cardLine FontMain"),
-                    html.Div(children=[
-                        html.H1(len(lst1), className="cardText card-subtitle cardLine FontMain", style={"float":"left","padding-top":"15px","font-size":"45px"}),
+                        html.H3("Anomalies", className="cardText card-title cardLine FontBold", style={"font-size":"20px"}),
+                    html.Div(style={"padding-top":"7px"}, children=[
+                        html.H1(len(lst1), className="cardText card-subtitle cardLine FontBold", style={"float":"left","padding-top":"12px","font-size":"45px", "color":"#1c1952"}),
                         html.Div(children=[
-                            html.I(className="bi bi-graph-up fa-1x cardLine", style={"float":"right"}),
-                            html.H2("00%", className="cardText card-subtitle cardLine FontMain", style={"float":"right","padding-top":"25px"})
+                            html.H2(" 00%", className="GreenCard bi bi-graph-up cardText card-subtitle cardLine FontBold IconBold", style={"float":"right","margin-top":"35px", "font-size":"20px", "padding":"5px 10px 5px"})
                         ]),
                         
                     ])],        
                     style={"margin":"5px","background-color":"#ffffff","height":"37vh","width":"25%","border":"none"},
-                    className="card"
+                    className="card shadow-lg bg-white rounded"
                 ),
                 html.Div(children=[
 html.Div(children=[
-                        html.I(className="bi bi-exclamation-triangle fa-2x cardText cardLine", style={"float":"left"}),
-                        html.I(className="bi bi-three-dots-vertical fa-2x cardText cardLine", style={"float":"right"})]
+                        html.I(className="bi bi-exclamation-triangle fa-2x cardText cardLine FontBold IconBold", style={"float":"left"}),
+                        html.I(className="bi bi-three-dots-vertical fa-2x cardText cardLine FontBold", style={"float":"right"})]
                     ),
-                        html.H3("False-Positives", className="cardText card-title cardLine FontMain"),
-                    html.Div(children=[
-                        html.H1(len(lst1), className="cardText card-subtitle cardLine FontMain", style={"float":"left","padding-top":"15px","font-size":"45px"}),
+                        html.H3("False-Positives", className="cardText card-title cardLine FontBold", style={"font-size":"20px"}),
+                    html.Div(style={"padding-top":"7px"}, children=[
+                        html.H1(len(lst1), className="cardText card-subtitle cardLine FontBold", style={"float":"left","padding-top":"12px","font-size":"45px", "color":"#1c1952"}),
                         html.Div(children=[
-                            html.I(className="bi bi-graph-up fa-1x cardLine", style={"float":"right"}),
-                            html.H2("00%", className="cardText card-subtitle cardLine FontMain", style={"float":"right","padding-top":"25px"})
+                            html.H2(" 00%", className="RedCard bi bi-graph-up cardText card-subtitle cardLine FontBold IconBold", style={"float":"right","margin-top":"35px", "font-size":"20px", "padding":"5px 10px 5px"})
                         ]),
 
                     ])],        
@@ -130,7 +139,8 @@ html.Div(children=[
                         'fontWeight': 'bold'
                         })
                     ],
-                    style={"margin":"15px","background-color":"#e0e0d1","height":"8%","width":"40%","outline-color" :"#b7b795","outline-style" : "solid", "outline-width" : "3px"}
+                    style={"margin":"5px","background-color":"#e0e0d1","height":"12%","width":"40%","border":"none"},
+                     className="card shadow-lg bg-white rounded"
                 ),
             
             ],style={"display": "flex","justify-content":"center"},className="row"),
