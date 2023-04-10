@@ -19,7 +19,6 @@ originalDF = pd.read_csv("Dashboard_with_pages\TestCSVLg.csv", delimiter=";")
 originalDF["Date"] = pd.to_datetime(
     originalDF["Date"], format="%d/%m/%Y", dayfirst=True
 )
-copyDf = originalDF
 
 
 layout = html.Div(
@@ -37,7 +36,8 @@ layout = html.Div(
                         "Today",
                         "Yesterday",
                         "Last two days",
-                        "This week",
+                        "Last 7 days",
+                        "This month",
                     ],
                     "Today",
                     id="interval_picker_dropdown",
@@ -49,9 +49,8 @@ layout = html.Div(
             children=[
                 html.H5("Anomalies", style={"margin-top": "20px"}),
                 dash_table.DataTable(
-                    copyDf.to_dict("records"),
                     id="InboxTable",
-                    columns=[{"name": i, "id": i} for i in copyDf.columns],
+                    columns=[{"name": i, "id": i} for i in originalDF.columns],
                     editable=True,
                     sort_action="native",
                     sort_mode="multi",
@@ -88,14 +87,17 @@ def calculate_interval(value):
             return (today + pd.offsets.Day(-1), today + pd.offsets.Day(-1))
         case "Last two days":
             return (today, today + pd.offsets.Day(-1))
-        case "This week":
+        case "Last 7 days":
             return (today, today + pd.offsets.Day(-6))
+        case "This month":
+            return (today, today + pd.offsets.MonthEnd(-1))
         case "All time":
             return (today, pd.Timestamp(year=2000, month=1, day=1))
 
 
 @callback(
-    Output("interval_output", "children"), Input("interval_picker_dropdown", "value")
+    Output("InboxTable", component_property="data"),
+    Input("interval_picker_dropdown", "value"),
 )
 def adjust_table_to_interval(value):
     interval = calculate_interval(value)
@@ -103,4 +105,4 @@ def adjust_table_to_interval(value):
     copyDf = originalDF[
         (originalDF["Date"] <= interval[0]) & (originalDF["Date"] >= interval[1])
     ]
-    return interval
+    return copyDf.to_dict(orient="records")
