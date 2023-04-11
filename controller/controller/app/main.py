@@ -11,11 +11,19 @@ from datetime import datetime
 from controller.database.data_loader import DataLoader
 from controller.database.datawriter import DataWriter
 from controller.database.tables import Anomalies
+from controller.utils.sql_utils import settings
 
 
 app = FastAPI()
 data_loader = DataLoader()
 data_writer = DataWriter()
+
+anomaly_detector = settings.anomaly_detector
+data_generator = settings.data_generator
+
+get_prediction = f"{anomaly_detector}/logs/getPredict"
+get_LogList = f"{data_generator}/logs/LogList"
+get_record = f"{data_generator}/logs/get_record"
 
 
 class Anomaly(BaseModel):
@@ -29,12 +37,12 @@ class Anomaly(BaseModel):
 def getAnomalyList(threshold: float = 0.02):
     myResult = []
     # Retrives the list from the datagenerator
-    request = requests.get("http://data_generator:8000/logs/LogList")
+    request = requests.get(get_LogList)
     # Deserialize it from json
     dataList = request.json()
     for i in dataList:
         response = requests.get(
-            "http://anomaly_detector:8001/logs/getPredict/",
+            get_prediction,
             params={"log_message": i[0], "threshold": threshold},
         )
         answer = response.json()
@@ -50,7 +58,7 @@ logQueue = queue.Queue(1000)
 def simulateLogsteam():
     while True:
         # Missing load balancing when queue is full
-        myLogmessage = requests.get("http://data_generator:8000/logs/get_record").json()
+        myLogmessage = requests.get(get_record).json()
         logQueue.put(myLogmessage) # Put blocks/waits when the queue is full
     
 
@@ -60,7 +68,7 @@ def simulateLogsteam():
 def simulateStreamAnalysis():
     while True:
         while logQueue.not_empty:
-            analysedMessage = requests.get('http://anomaly_detector:8001/logs/getPredict', params={"log_message":logQueue.get(),"threshold":0.02 })
+            analysedMessage = requests.get(get_prediction, params={"log_message":logQueue.get(),"threshold":0.02 })
             analysedMessage = analysedMessage.json()
             if analysedMessage["anomaly_score"] > 0.02:
                 #Replace print with insertion into database
@@ -75,8 +83,8 @@ def simulateStreamAnalysis():
 def postAnomaly():
     while True:
         while logQueue.not_empty:
-            myLogmessage = requests.get("http://data_generator:8000/logs/get_record")
-            analysedMessage = requests.get('http://anomaly_detector:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
+            myLogmessage = requests.get(get_record)
+            analysedMessage = requests.get(get_prediction, params={"log_message":myLogmessage,"threshold":0.02 })
             analysedMessage = analysedMessage.json()
             if analysedMessage["anomaly_score"] > 0.02:
               # Replace print with insertion into database
@@ -110,8 +118,8 @@ def post_test_anomaly(log_message:str, anomaly_score:float):
 #Endpoint for getting a log from the datagenerator, and the inserting into the db if it is an anomaly
 @app.post("/anomalies/post_anomaly",response_model=Anomaly)
 def post_anomaly():
-    myLogmessage = requests.get("http://data_generator:8000/logs/get_record")
-    analysedMessage = requests.get('http://anomaly_detector:8001/logs/getPredict', params={"log_message":myLogmessage,"threshold":0.02 })
+    myLogmessage = requests.get(get_record)
+    analysedMessage = requests.get(get_prediction, params={"log_message":myLogmessage,"threshold":0.02 })
     analysedMessage = analysedMessage.json()
 
     dt = datetime.now()

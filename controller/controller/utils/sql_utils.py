@@ -1,10 +1,16 @@
 from sqlmodel import Session, delete
 from sqlmodel import create_engine
+from pydantic import BaseSettings
 
 from controller.utils.utility import get_env_variables
 from controller.database.tables import Logs
 from controller.database.tables import Anomalies
 
+class Settings(BaseSettings):
+    anomaly_detector: str
+    data_generator: str
+
+settings = Settings()
 
 def get_database_connection_string():
     env = get_env_variables()
@@ -24,6 +30,12 @@ def get_database_engine():
     connection_string = get_database_connection_string()
     engine = create_engine(connection_string)
     return engine
+
+
+#def get_anomaly_detector():
+ #   env = get_env_variables()
+  #  anomaly_detector = env["ANOMALY_DETECTOR"]
+   # return anomaly_detector
 
 
 def empty_database_tables():
