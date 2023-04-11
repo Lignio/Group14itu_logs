@@ -1,5 +1,5 @@
 from turtle import st
-from dash import Dash, dcc, html, Input, Output, callback, dash_table, State
+from dash import Dash, dcc, html, Input, Output, callback, dash_table, State, ctx
 import pandas as pd
 import dash
 import plotly.express as px
@@ -46,13 +46,38 @@ layout = html.Div(
             ]
         ),
         html.Div(
-            children=[
-                dcc.Dropdown(
-                    ["Mark as False Positive", "MTL", "SF"],
-                    "Mark as False Positive",
-                    id="demo-dropdown",
+            [
+                dbc.Modal(
+                    [
+                        dbc.ModalHeader(dbc.ModalTitle("Options")),
+                        dbc.ModalBody(
+                            html.Div(
+                                children=[
+                                    dcc.Dropdown(
+                                        [
+                                            "Mark as False Positive",
+                                            "Unmark as False Positive",
+                                        ],
+                                        "Mark as False Positive",
+                                        id="demo-dropdown",
+                                    ),
+                                ]
+                            ),
+                        ),
+                        dbc.ModalFooter(
+                            children=[
+                                dbc.Button(
+                                    "OK", id="OK", className="ms-auto", n_clicks=0
+                                ),
+                                dbc.Button(
+                                    "Close", id="close", className="ms-auto", n_clicks=0
+                                ),
+                            ]
+                        ),
+                    ],
+                    id="modal",
+                    is_open=False,
                 ),
-                html.Div(id="dd-output-container"),
             ]
         ),
         html.Div(
@@ -89,12 +114,14 @@ layout = html.Div(
 )
 
 
-@callback(
-    Output("my-output", "children"),
-    Input("InboxTable", "active_cell"),
-    State("InboxTable", "derived_viewport_data"),
+"""@callback(
+    Output("modal", "is_open"),
+    [Input("InboxTable", "active_cell"), Input("close", "n_clicks")],
+    [State("InboxTable", "derived_viewport_data"), State("modal", "is_open")],
 )
-def cell_clicked(active_cell, data):
+def cell_clicked(active_cell, data, n, is_open):
+    if n:
+        return not is_open
     if active_cell:
         row = active_cell["row"]
         col = active_cell["column_id"]
@@ -102,12 +129,42 @@ def cell_clicked(active_cell, data):
         if col == "...":  # or whatever column you want
             selected = data[row]["ID"]
             print(selected)
+
             return 1
         else:
-            return 1
+            return 1"""
 
 
-@callback(Output("dd-output-container", "children"), Input("demo-dropdown", "value"))
+"""@callback(Output("dd-output-container", "children"), Input("demo-dropdown", "value"))
 def update_output(value):
     print(value)
     return f"You have selected {value}"
+"""
+
+
+@callback(
+    Output("modal", "is_open"),
+    [
+        Input("InboxTable", "active_cell"),
+        Input("close", "n_clicks"),
+        Input("OK", "n_clicks"),
+        Input("demo-dropdown", "value"),
+    ],
+    [State("InboxTable", "derived_viewport_data"), State("modal", "is_open")],
+)
+def toggle_modal(active_cell, n, ok, value, data, is_open):
+    if active_cell:
+        row = active_cell["row"]
+        col = active_cell["column_id"]
+        # print(ok)
+        if "demo-dropdown" == ctx.triggered_id:
+            return is_open
+        if "OK" == ctx.triggered_id:
+            selected = data[row]["ID"]
+            print(selected)
+            print(value)
+            return not is_open
+        if "close" == ctx.triggered_id:
+            return (not is_open, value)
+        elif col == "...":  # or whatever column you want
+            return not is_open
