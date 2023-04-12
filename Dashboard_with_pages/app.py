@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, Input, Output, State
+from dash import Dash, dcc, html, Input, Output, State, ctx
 import dash
 import pandas as pd
 import plotly.express as px
@@ -70,36 +70,31 @@ app.layout = html.Div(children=[
 
 
 def toggle_alert(n1, n2, n3, is_open):
-    if n2 or n3:
-        return not is_open
-    elif n1:
-        return True
+    triggered_id = ctx.triggered_id
+    if triggered_id == 'interval-component':
+        return check_for_new_anomalies(is_open)
+    else: return not is_open
 
 app.callback(
     Output("alertMsg", "is_open"),
-    [Input('interval-component', 'n_intervals'), Input("close", "n_clicks"), Input("later", "n_clicks")],
+    Input('interval-component', 'n_intervals'), 
+    Input("close", "n_clicks"), 
+    Input("later", "n_clicks"),
     State("alertMsg", "is_open"),
 )(toggle_alert)
 
 
+#
 #app.callback(
-#    Output("alertMsg", "is_open")
-#    [Input('interval-component', 'n_intervals'), Input("close", "n_clicks"), Input("later", "n_clicks")],
-#    State("alertMsg", "is_open")
-#) ()
-#Input("AlertBTN", "n_clicks")
-
-
-#app.callback(
-#     Output("alertMsg", "is_open"),
+#     Output(),
 #    Input('interval-component', 'n_intervals')
 #)
-#def check_for_new_anomalies(is_open):
-#    #If new anomaly return is_open = true
-#    if True:
-#        return True
-#    #If no new anomaly
-#    return is_open 
+def check_for_new_anomalies(is_open):
+   #If new anomaly return is_open = true
+    if is_open:
+        return is_open
+  #If no new anomaly
+    return not is_open 
 
 
 #Debug true allows for hot reloading while writing code.
