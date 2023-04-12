@@ -16,6 +16,9 @@ dash.register_page(__name__)
 
 testDf = pd.read_csv(r"Dashboard_with_pages\TestCSVLg.csv", delimiter=";")
 
+
+# Appends the ... button to the dataframe containing the data from the database
+# This is currently using data from the  TestCSVLg file.
 buttonList = []
 for i in testDf.index:
     buttonList.append("...")
@@ -45,6 +48,7 @@ layout = html.Div(
                 html.Div(id="output-container-date-picker-range", style={}),
             ]
         ),
+        # This is the popup menu that is shown when the user presses the ... button.
         html.Div(
             [
                 dbc.Modal(
@@ -53,6 +57,8 @@ layout = html.Div(
                         dbc.ModalBody(
                             html.Div(
                                 children=[
+                                    # This is the dropdown menu containing the options the user can choose
+                                    # in regards to marking/unmarking false positives.
                                     dcc.Dropdown(
                                         [
                                             "Mark as False Positive",
@@ -64,6 +70,7 @@ layout = html.Div(
                                 ]
                             ),
                         ),
+                        # This is the closing buttons for the popup - OK to confirm the chosen marking of an anomaly/cancel to cancel.
                         dbc.ModalFooter(
                             children=[
                                 dbc.Button(
@@ -80,6 +87,7 @@ layout = html.Div(
                 ),
             ]
         ),
+        # This is the div containing the anomalies data
         html.Div(
             children=[
                 html.H5("Anomalies", style={"margin-top": "20px"}),
@@ -114,6 +122,7 @@ layout = html.Div(
 )
 
 
+# This is the callback for the functionality that marks/unmarks false positives in the anomaly data.
 @callback(
     Output("modal", "is_open"),
     [
@@ -124,7 +133,12 @@ layout = html.Div(
     ],
     [State("InboxTable", "derived_viewport_data"), State("modal", "is_open")],
 )
-def toggle_modal(active_cell, n, ok, value, data, is_open):
+
+# This is the "method" that handles what pressing on the ... does.
+# It iintially checks if the user has clicked on a cell in the dataframe,
+# and in that case whether or not that cell is a ... cell
+# If it is a ... cell it opens the popup and allow the user to choose desired outcome.
+def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
     if active_cell:
         row = active_cell["row"]
         col = active_cell["column_id"]
