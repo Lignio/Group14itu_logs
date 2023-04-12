@@ -84,17 +84,13 @@ app.callback(
 )(toggle_alert)
 
 
-#
-#app.callback(
-#     Output(),
-#    Input('interval-component', 'n_intervals')
-#)
 def check_for_new_anomalies(is_open):
-   #If new anomaly return is_open = true
+    anomalies = requests.get("http://controller:8002/anomalies/get_anomaly_list").json()
+    
     if is_open:
         return is_open
   #If no new anomaly
-    return not is_open 
+    return is_open 
 
 
 #Debug true allows for hot reloading while writing code.
