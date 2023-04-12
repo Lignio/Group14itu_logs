@@ -82,16 +82,17 @@ def toggle_alert(n1, n2, n3, is_open):
         return check_for_new_anomalies(is_open)
     else: return not is_open
 
+lastAnomaly = []
 
 def check_for_new_anomalies(is_open):
     anomalies = requests.get("http://localhost:8002/getAnomalyList?threshold=0.02").json()
     print(anomalies)
-    #Emy start here
-    if is_open:
-        return is_open
-  #If no new anomaly
-    return is_open 
-
+    if lastAnomaly == []:
+        lastAnomaly = anomalies[len(anomalies)-1]
+    elif lastAnomaly != anomalies[len(anomalies)-1] :
+        lastAnomaly = anomalies[len(anomalies)-1]
+        return True
+    return is_open
 
 #Debug true allows for hot reloading while writing code.
 if __name__ == "__main__":
