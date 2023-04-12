@@ -63,7 +63,7 @@ app.layout = html.Div(children=[
     ),
     dcc.Interval(
                 id='interval-component',
-                interval=1 * 10000,
+                interval=1 * 5000,
                 n_intervals=0
             ),
     ], style={"display":"flex","width" : "100vw"})
@@ -74,7 +74,6 @@ def toggle_alert(n1, n2, n3, is_open):
         return not is_open
     elif n1:
         return True
-    else : return True
 
 app.callback(
     Output("alertMsg", "is_open"),
@@ -82,6 +81,12 @@ app.callback(
     State("alertMsg", "is_open"),
 )(toggle_alert)
 
+
+#app.callback(
+#    Output("alertMsg", "is_open")
+#    [Input('interval-component', 'n_intervals'), Input("close", "n_clicks"), Input("later", "n_clicks")],
+#    State("alertMsg", "is_open")
+#) ()
 #Input("AlertBTN", "n_clicks")
 
 
