@@ -1,5 +1,5 @@
 from turtle import st
-from dash import Dash, dcc, html, Input, Output, callback, dash_table
+from dash import Dash, dcc, html, Input, Output, callback, dash_table, State, ctx
 import pandas as pd
 import dash
 import plotly.express as px
@@ -20,6 +20,14 @@ originalDF["Date"] = pd.to_datetime(
     originalDF["Date"], format="%d/%m/%Y", dayfirst=True
 )
 
+
+# Appends the ... button to the dataframe containing the data from the database
+# This is currently using data from the  TestCSVLg file.
+buttonList = []
+for i in originalDF.index:
+    buttonList.append("...")
+
+orignialDF["..."] = buttonList
 
 layout = html.Div(
     children=[
@@ -44,10 +52,52 @@ layout = html.Div(
                 ),
             ]
         ),
+        # This is the popup menu that is shown when the user presses the ... button.
+        html.Div(
+            [
+                dbc.Modal(
+                    [
+                        dbc.ModalHeader(dbc.ModalTitle("Options")),
+                        dbc.ModalBody(
+                            html.Div(
+                                children=[
+                                    # This is the dropdown menu containing the options the user can choose
+                                    # in regards to marking/unmarking false positives.
+                                    dcc.Dropdown(
+                                        [
+                                            "Mark as False Positive",
+                                            "Unmark as False Positive",
+                                        ],
+                                        "Mark as False Positive",
+                                        id="demo-dropdown",
+                                    ),
+                                ]
+                            ),
+                        ),
+                        # This is the closing buttons for the popup - OK to confirm the chosen marking of an anomaly/cancel to cancel.
+                        dbc.ModalFooter(
+                            children=[
+                                dbc.Button(
+                                    "OK", id="OK", className="ms-auto", n_clicks=0
+                                ),
+                                dbc.Button(
+                                    "Close", id="close", className="ms-auto", n_clicks=0
+                                ),
+                            ]
+                        ),
+                    ],
+                    id="modal",
+                    is_open=False,
+                ),
+            ]
+        ),
+        # This is the div containing the anomalies data
         html.Div(
             children=[
                 html.H5("Anomalies", style={"margin-top": "20px"}),
                 dash_table.DataTable(
+
+
                     id="InboxTable",
                     columns=[{"name": i, "id": i} for i in originalDF.columns],
                     editable=True,
@@ -76,6 +126,39 @@ layout = html.Div(
     style={"margin-left": "20px"},
 )
 
+
+# This is the callback for the functionality that marks/unmarks false positives in the anomaly data.
+@callback(
+    Output("modal", "is_open"),
+    [
+        Input("InboxTable", "active_cell"),
+        Input("close", "n_clicks"),
+        Input("OK", "n_clicks"),
+        Input("demo-dropdown", "value"),
+    ],
+    [State("InboxTable", "derived_viewport_data"), State("modal", "is_open")],
+)
+
+# This is the "method" that handles what pressing on the ... does.
+# It iintially checks if the user has clicked on a cell in the dataframe,
+# and in that case whether or not that cell is a ... cell
+# If it is a ... cell it opens the popup and allow the user to choose desired outcome.
+def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
+    if active_cell:
+        row = active_cell["row"]
+        col = active_cell["column_id"]
+        # print(ok)
+        if "demo-dropdown" == ctx.triggered_id:
+            return is_open
+        if "OK" == ctx.triggered_id:
+            selected = data[row]["ID"]
+            print(selected)
+            print(value)
+            return not is_open
+        if "close" == ctx.triggered_id:
+            return (not is_open, value)
+        elif col == "...":  # or whatever column you want
+            return not is_open
 
 def calculate_interval(value):
     today = pd.Timestamp("today").floor("D")
@@ -106,3 +189,4 @@ def adjust_table_to_interval(value):
         (originalDF["Date"] <= interval[0]) & (originalDF["Date"] >= interval[1])
     ]
     return copyDf.to_dict(orient="records")
+
