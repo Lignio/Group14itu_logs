@@ -1,8 +1,8 @@
 from sqlalchemy import func
 from sqlmodel import Session, select
 
-from data_generator.database.tables import Logs, Anomalies
-from data_generator.utils.sql_utils import get_database_engine
+from controller.database.tables import Logs, Anomalies
+from controller.utils.sql_utils import get_database_engine
 
 class DataLoader():
     def __init__(self):
