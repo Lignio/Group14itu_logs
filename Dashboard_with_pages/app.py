@@ -40,7 +40,8 @@ app.layout = html.Div(children=[
             ]),
         html.Div(children=[
             html.Div(
-                dbc.Button(f" {page['name']}", color="secondary",class_name="SideBTN SideElement bi bi-house",href=page["relative_path"]),
+                dbc.Button(f" {page['name']}", color="secondary",class_name="SideBTN SideElement bi bi-house",href=page["relative_path"]) if "Dashboard" in f" {page['name']}"
+                else dbc.Button(f" {page['name']}", color="secondary",class_name="SideBTN SideElement bi bi-table",href=page["relative_path"]),
                 style={"margin-top" : "5vh","margin-left" : "2%","font-weight" : "500"},
             )
             for page in dash.page_registry.values()

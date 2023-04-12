@@ -10,7 +10,7 @@ from plotly.graph_objs import *
 from .testdata import genLists
 
 #Separate pages need to be registered like this to show up in the page container in app.py
-dash.register_page(__name__)
+dash.register_page(__name__, path='/')
 
 
 #jsonLst = requests.get("http://localhost:8002/getAnomalyList", params = {"threshold":0.02})
