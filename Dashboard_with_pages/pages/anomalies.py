@@ -114,34 +114,6 @@ layout = html.Div(
 )
 
 
-"""@callback(
-    Output("modal", "is_open"),
-    [Input("InboxTable", "active_cell"), Input("close", "n_clicks")],
-    [State("InboxTable", "derived_viewport_data"), State("modal", "is_open")],
-)
-def cell_clicked(active_cell, data, n, is_open):
-    if n:
-        return not is_open
-    if active_cell:
-        row = active_cell["row"]
-        col = active_cell["column_id"]
-
-        if col == "...":  # or whatever column you want
-            selected = data[row]["ID"]
-            print(selected)
-
-            return 1
-        else:
-            return 1"""
-
-
-"""@callback(Output("dd-output-container", "children"), Input("demo-dropdown", "value"))
-def update_output(value):
-    print(value)
-    return f"You have selected {value}"
-"""
-
-
 @callback(
     Output("modal", "is_open"),
     [
