@@ -79,18 +79,22 @@ layout = html.Div(children=[
             )
         ),
 
-        html.Div(
-            dcc.Dropdown(
-                    [
-                        "All time",
-                        "Today",
-                        "Yesterday",
-                        "Last two days",
-                        "Last 7 days",
-                        "This month",
-                    ],
-                    "Today"), className="", style={"height":"12vh","width":"10vw"}),
+        html.Div(children=[
+            dbc.DropdownMenu(
+                label=" Choose Date", 
+                toggle_style={"background":"white", "color":"black"}, 
+                toggleClassName="border-white DropShadow bi bi-calendar-day",
+                direction="down",
+                children=[
+                dbc.DropdownMenuItem("All time", id="all_time_option"),
+                dbc.DropdownMenuItem("Today", id="today_option"),
+                dbc.DropdownMenuItem("Yesterday", id="yesterday_option" ),
+                dbc.DropdownMenuItem("Last two days", id="last_two_days_option"),
+                dbc.DropdownMenuItem("Last 7 days", id="last_7_days_option"),
+                dbc.DropdownMenuItem("This month", id="this_month_option")
 
+            ], className="", style={"margin-bottom":"20px"}),
+        ]),
         html.Div(children=[
             #The three boxes on the page are currently hardcoded with values. These should of course
             #be updated with the correct data going forward. Should be pretty easily done
