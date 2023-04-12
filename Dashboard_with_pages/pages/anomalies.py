@@ -42,7 +42,6 @@ layout = html.Div(
                     "Today",
                     id="interval_picker_dropdown",
                 ),
-                html.Div(id="interval_output"),
             ]
         ),
         html.Div(
@@ -95,6 +94,7 @@ def calculate_interval(value):
             return (today, pd.Timestamp(year=1999, month=1, day=1))
 
 
+# When an option is selected in the dropdown the table is updated to fit the filter
 @callback(
     Output("InboxTable", component_property="data"),
     Input("interval_picker_dropdown", "value"),
