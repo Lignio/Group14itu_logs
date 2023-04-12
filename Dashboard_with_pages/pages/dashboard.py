@@ -52,7 +52,7 @@ PieChartFig = px.pie(
     title="Piechart for data",
 ).update_layout(margin=dict(l=20, r=20, t=30, b=20))
 
-testDf = pd.read_csv("Dashboard_with_pages\TestCSVLg.csv", delimiter=";")
+testDf = pd.read_csv("Dashboard_with_pages/TestCSVLg.csv", delimiter=";")
 
 # Layout = html.Div defines the out container of the whole page.
 # "children =[]" is needed when more than 1 html element is present within the container.

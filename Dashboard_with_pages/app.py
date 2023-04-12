@@ -54,7 +54,7 @@ app.layout = html.Div(children=[
                     "Not now", id="later", className="ms-auto"
                 ),
                 dbc.Button(
-                    "Go to anomaly", id="close", className="ms-auto", n_clicks=0, href= '/anomalies'
+                    "Go to anomaly", id="goTo", className="ms-auto", n_clicks=0, href= '/anomalies'
                 )]
             ),
         ],
@@ -72,7 +72,7 @@ app.layout = html.Div(children=[
 @app.callback(
     Output("alertMsg", "is_open"),
     Input('interval-component', 'n_intervals'), 
-    Input("close", "n_clicks"), 
+    Input("goTo", "n_clicks"), 
     Input("later", "n_clicks"),
     State("alertMsg", "is_open"),
 )
@@ -84,7 +84,7 @@ def toggle_alert(n1, n2, n3, is_open):
 
 
 def check_for_new_anomalies(is_open):
-    anomalies = requests.get("http://localhost:8002/anomalies/getAnomalyList").json()
+    anomalies = requests.get("http://localhost:8002/getAnomalyList?threshold=0.02").json()
     print(anomalies)
     #Emy start here
     if is_open:

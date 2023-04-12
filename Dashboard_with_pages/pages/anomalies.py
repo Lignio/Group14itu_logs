@@ -15,7 +15,7 @@ dash.register_page(__name__)
 
 
 # Not an actual page yet. Just for showing that pages can be changed.
-originalDF = pd.read_csv("Dashboard_with_pages\TestCSVLg.csv", delimiter=";")
+originalDF = pd.read_csv("Dashboard_with_pages/TestCSVLg.csv", delimiter=";")
 originalDF["Date"] = pd.to_datetime(
     originalDF["Date"], format="%d/%m/%Y", dayfirst=True
 )
@@ -27,7 +27,7 @@ buttonList = []
 for i in originalDF.index:
     buttonList.append("...")
 
-orignialDF["..."] = buttonList
+originalDF["..."] = buttonList
 
 layout = html.Div(
     children=[
