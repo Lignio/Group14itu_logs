@@ -7,28 +7,30 @@ from datetime import date
 import dash_bootstrap_components as dbc
 import random
 from plotly.graph_objs import *
-from .testdata import genLists
+from pages.testdata import genLists
+from datetime import datetime, timedelta
 
 
 dash.register_page(__name__)
 
-# Not an actual page yet. Just for showing that pages can be changed.
 
-testDf = pd.read_csv(r"Dashboard_with_pages\TestCSVLg.csv", delimiter=";")
+# Not an actual page yet. Just for showing that pages can be changed.
+originalDF = pd.read_csv("Dashboard_with_pages\TestCSVLg.csv", delimiter=";")
+originalDF["Date"] = pd.to_datetime(
+    originalDF["Date"], format="%d/%m/%Y", dayfirst=True
+)
 
 
 # Appends the ... button to the dataframe containing the data from the database
 # This is currently using data from the  TestCSVLg file.
 buttonList = []
-for i in testDf.index:
+for i in originalDF.index:
     buttonList.append("...")
 
-testDf["..."] = buttonList
-
+orignialDF["..."] = buttonList
 
 layout = html.Div(
     children=[
-        html.Div(id="my-output"),
         html.Div(html.H1("Anomalies"), id="TitleDIV"),
         html.Div(
             # This breadcrumb is simply hardcoded for now. Should probably be fixed
@@ -36,16 +38,18 @@ layout = html.Div(
         ),
         html.Div(
             children=[
-                # The datepicker is taken from the DCC page, and it's functionality is defined
-                # in the callback in the bottom.
-                dcc.DatePickerRange(
-                    id="my-date-picker-range",
-                    min_date_allowed=date(1995, 8, 5),
-                    max_date_allowed=date(2017, 9, 19),
-                    initial_visible_month=date(2017, 8, 5),
-                    end_date=date(2017, 8, 25),
+                dcc.Dropdown(
+                    [
+                        "All time",
+                        "Today",
+                        "Yesterday",
+                        "Last two days",
+                        "Last 7 days",
+                        "This month",
+                    ],
+                    "Today",
+                    id="interval_picker_dropdown",
                 ),
-                html.Div(id="output-container-date-picker-range", style={}),
             ]
         ),
         # This is the popup menu that is shown when the user presses the ... button.
@@ -92,9 +96,10 @@ layout = html.Div(
             children=[
                 html.H5("Anomalies", style={"margin-top": "20px"}),
                 dash_table.DataTable(
-                    testDf.to_dict("records"),
+
+
                     id="InboxTable",
-                    columns=[{"name": i, "id": i} for i in testDf.columns],
+                    columns=[{"name": i, "id": i} for i in originalDF.columns],
                     editable=True,
                     sort_action="native",
                     sort_mode="multi",
@@ -154,3 +159,34 @@ def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
             return (not is_open, value)
         elif col == "...":  # or whatever column you want
             return not is_open
+
+def calculate_interval(value):
+    today = pd.Timestamp("today").floor("D")
+    match value:
+        case "Today":
+            return (today, today)
+        case "Yesterday":
+            return (today + pd.offsets.Day(-1), today + pd.offsets.Day(-1))
+        case "Last two days":
+            return (today, today + pd.offsets.Day(-1))
+        case "Last 7 days":
+            return (today, today + pd.offsets.Day(-6))
+        case "This month":
+            return (today, today + pd.offsets.MonthEnd(-1))
+        case "All time":
+            return (today, pd.Timestamp(year=1999, month=1, day=1))
+
+
+# When an option is selected in the dropdown the table is updated to fit the filter
+@callback(
+    Output("InboxTable", component_property="data"),
+    Input("interval_picker_dropdown", "value"),
+)
+def adjust_table_to_interval(value):
+    interval = calculate_interval(value)
+
+    copyDf = originalDF[
+        (originalDF["Date"] <= interval[0]) & (originalDF["Date"] >= interval[1])
+    ]
+    return copyDf.to_dict(orient="records")
+
