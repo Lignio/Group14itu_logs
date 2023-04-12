@@ -11,7 +11,7 @@ h1, h2, h3, h4, h5, h6, P {
 }
 
 .SideElement {
-    display: flex;display: flex;
+    display: flex;
     justify-content: center;
     align-items: center;
     margin: auto;
@@ -89,6 +89,14 @@ h1, h2, h3, h4, h5, h6, P {
 
 #Logo {
     text-align: center;
+}
+
+.dropdown-toggle::after {
+    display:none;
+}
+
+.DropShadow {
+    box-shadow: 0px 5px 11px 1px rgba(72,71,61,0.26);
 }
 
 

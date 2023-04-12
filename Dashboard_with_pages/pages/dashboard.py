@@ -36,10 +36,19 @@ def countvalues():
 
 lst1, lst2 = genLists()
 
+dropdown = dbc.DropdownMenu(children=[
+                    dbc.DropdownMenuItem("All time"),
+                    dbc.DropdownMenuItem("Today", header="true"),
+                    dbc.DropdownMenuItem("Yesterday"),
+                    dbc.DropdownMenuItem("Last two days"),
+                    dbc.DropdownMenuItem("Last 7 days"),
+                    dbc.DropdownMenuItem("This month")
+            ],label="Today",style={"height":"8vh","width":"12vw","margin-bottom":"20px","display":"flex"})
+
 #The figures are currently just populated with test data. The figures are created
 #with the plotly package, so all documentation is via plotly.
-ScatterPlotFig = px.scatter(x=lst1,y=lst2,title="Scatter plot of name lengths").update_layout(xaxis_title="Name length",yaxis_title="Name count",margin=dict(l=20, r=20, t=30, b=20))
-PieChartFig = px.pie(values=countvalues(), names=["0.02 - 0.024", "0.024 - 0.026", ">0.026"], title="Piechart for data").update_layout(margin=dict(l=20, r=20, t=30, b=20))
+ScatterPlotFig = px.scatter(x=lst1,y=lst2,title="").update_layout(xaxis_title="Name length",yaxis_title="Name count",margin=dict(l=20, r=20, t=30, b=20))
+PieChartFig = px.pie(values=countvalues(), names=["0.02 - 0.024", "0.024 - 0.026", ">0.026"], title="").update_layout(margin=dict(l=20, r=20, t=30, b=20))
 
 testDf = pd.read_csv('Dashboard_with_pages\TestCSVLg.csv',delimiter=';')
 
@@ -70,18 +79,17 @@ layout = html.Div(children=[
             )
         ),
 
-        html.Div(children=[
-            #The datepicker is taken from the DCC page, and it's functionality is defined
-            #in the callback in the bottom. 
-            dcc.DatePickerRange(
-            id='my-date-picker-range',
-            min_date_allowed=date(1995, 8, 5),
-            max_date_allowed=date(2017, 9, 19),
-            initial_visible_month=date(2017, 8, 5),
-            end_date=date(2017, 8, 25),
-            ),
-            html.Div(id='output-container-date-picker-range',style={})
-        ]),
+        html.Div(
+            dcc.Dropdown(
+                    [
+                        "All time",
+                        "Today",
+                        "Yesterday",
+                        "Last two days",
+                        "Last 7 days",
+                        "This month",
+                    ],
+                    "Today"), className="", style={"height":"12vh","width":"10vw"}),
 
         html.Div(children=[
             #The three boxes on the page are currently hardcoded with values. These should of course
@@ -101,11 +109,11 @@ layout = html.Div(children=[
                         ]),
                         
                     ])],        
-                    style={"margin":"5px","background-color":"#ffffff","height":"37vh","width":"25%","border":"none"},
-                    className="card shadow-lg bg-white rounded"
+                    style={"margin":"5px","background-color":"#ffffff","height":"37vh","width":"24%","border":"none", "margin-right":"15px"},
+                    className="card rounded DropShadow"
                 ),
                 html.Div(children=[
-html.Div(children=[
+                    html.Div(children=[
                         html.I(className="bi bi-exclamation-triangle fa-2x cardText cardLine FontBold IconBold", style={"float":"left"}),
                         html.I(className="bi bi-three-dots-vertical fa-2x cardText cardLine FontBold", style={"float":"right"})]
                     ),
@@ -117,11 +125,13 @@ html.Div(children=[
                         ]),
 
                     ])],        
-                    style={"margin":"5px","background-color":"#ffffff","height":"37vh","width":"25%","border":"none"},
-                    className="card"
+                    style={"margin":"5px","background-color":"#ffffff","height":"37vh","width":"24%","border":"none","margin-right":"37px"},
+                    className="card DropShadow"
                 ),
                 html.Div(children=[
-                    html.H5("Anomaly Inbox", style={"margin-left": "20px"}),
+                    html.Div(children=[
+                    html.H5("Anomaly Inbox", className="cardText cardLine card-title FontBold",style={"margin-top": "10px", "float":"left"}),
+                    html.I(className="bi bi-exclamation-circle fa-1x cardLine", style={"float":"right","margin-right":"5px","margin-top":"3px", "font-size":"25px"})]),
                     dash_table.DataTable(
                         testDf.to_dict('records'),
                         id="InboxTable",
@@ -131,19 +141,20 @@ html.Div(children=[
                         sort_mode='multi',
                         style_table={
                         'overflow': 'auto',
-                        'height' : '30vh',
+                        'height' : '37vh',
                         'marginBottom' : '20px'
                         },
                         style_header={
-                        'backgroundColor': '#b3b3b3',
+                        'background': '#141446',
+                        'color' : 'white',
                         'fontWeight': 'bold'
                         })
                     ],
-                    style={"margin":"5px","background-color":"#e0e0d1","height":"12%","width":"40%","border":"none"},
-                     className="card shadow-lg bg-white rounded"
+                    style={"margin":"5px","background-color":"#e0e0d1","height":"50vh","width":"40%","border":"none","margin-top":"-65px"},
+                     className="card bg-white rounded DropShadow"
                 ),
             
-            ],style={"display": "flex","justify-content":"center"},className="row"),
+            ],style={"display": "flex","margin-left":"-5px"},className="row"),
         ]),
 
         html.Div(
@@ -154,20 +165,29 @@ html.Div(children=[
                 #a plotly figure as it's figure parameter. The style of it only defines
                 #the container containing the figure. All customization of the actual graph is done
                 #when defining the actual plotly figures.
-                dcc.Graph(
-                    figure=ScatterPlotFig,
-                    style={"width":"50vw","height":"30vw"}
-                ),
-                dcc.Graph(
-                    figure = PieChartFig,
-                    style={"width" : "30vw","height" : "30vw"}
+                html.Div(children=[
+                    html.H5("Anomalies Over Time", className="cardText card-title FontBold", style={"margin-left":"10px", "margin-top":"10px"}),
+                    dcc.Graph(
+                    
+                    figure=ScatterPlotFig, className="",
+                    style={"width":"40vw","height":"20vw","padding":"10px 10px 10px 10px"}
                 )
+                ], className="card border-0 DropShadow", style={"margin-right":"35px"})
+                ,
+                html.Div(children=[
+                    html.H5("Severity Percentage", className="cardText card-title FontBold", style={"margin-left":"10px", "margin-top":"10px"}),
+                    dcc.Graph(
+                    figure = PieChartFig, className="",
+                    style={"width" : "32vw","height" : "20vw", "padding":"10px 10px 10px 10px"}
+                )
+                ], className="card border-0 DropShadow")
+                
 
-            ],style={"display": "flex","justify-content":"center"},className="row"),
+            ],style={"display": "flex"  ,"padding-top":"30px","padding-bottom":"20px"}),
         )
 
         #Style customization for the whole page container:
-],style={"width" : "85vw", "margin-left":"20px"})], style={"display":"flex","width" : "80vw", "background-color":"#f0f3f6","padding-top":"20px"})
+],style={"width" : "85vw", "margin-left":"30px"})], style={"display":"flex","width" : "80vw", "background-color":"#f0f3f6","padding-top":"20px"})
 
 
 #Callbacks define the functionality of the dashboard.
