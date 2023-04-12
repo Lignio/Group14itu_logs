@@ -54,26 +54,48 @@ app.layout = html.Div(children=[
                     "Not now", id="later", className="ms-auto"
                 ),
                 dbc.Button(
-                    "Go to anomaly", id="goTo", className="ms-auto", n_clicks=0
+                    "Go to anomaly", id="close", className="ms-auto", n_clicks=0, href= '/anomalies'
                 )]
             ),
         ],
         id="alertMsg",
-        is_open=True,
+        is_open=False, #Not sure if this line should be here.
     ),
+    dcc.Interval(
+                id='interval-component',
+                interval=1 * 10000,
+                n_intervals=0
+            ),
     ], style={"display":"flex","width" : "100vw"})
 
 
-def toggle_alert(n1, n2, is_open):
-    if n1 or n2:
+def toggle_alert(n1, n2, n3, is_open):
+    if n2 or n3:
         return not is_open
-    return is_open
+    elif n1:
+        return True
+    else : return True
 
 app.callback(
     Output("alertMsg", "is_open"),
-    [Input("AlertBTN", "n_clicks"), Input("later", "n_clicks")],
+    [Input('interval-component', 'n_intervals'), Input("close", "n_clicks"), Input("later", "n_clicks")],
     State("alertMsg", "is_open"),
 )(toggle_alert)
+
+#Input("AlertBTN", "n_clicks")
+
+
+#app.callback(
+#     Output("alertMsg", "is_open"),
+#    Input('interval-component', 'n_intervals')
+#)
+#def check_for_new_anomalies(is_open):
+#    #If new anomaly return is_open = true
+#    if True:
+#        return True
+#    #If no new anomaly
+#    return is_open 
+
 
 #Debug true allows for hot reloading while writing code.
 if __name__ == "__main__":
