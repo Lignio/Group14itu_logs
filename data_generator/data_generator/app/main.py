@@ -5,11 +5,14 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from data_generator.database.data_loader import DataLoader
+from data_generator.database.datawriter import DataWriter
 from data_generator.data.log_parser import LogParser
+from data_generator.database.tables import Anomalies
 
 
 app = FastAPI()
 data_loader = DataLoader()
+data_writer = DataWriter()
 ids = data_loader.get_ids()
 if len(ids) == 0:
     log_parser = LogParser()
@@ -17,9 +20,15 @@ if len(ids) == 0:
     ids = data_loader.get_ids()
 
 
+class Anomaly(BaseModel):
+    log_time: str
+    log_message: str
+    anomaly_score: float 
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
 
 
 @app.get("/logs/get_record")
