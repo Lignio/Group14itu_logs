@@ -41,7 +41,7 @@ lst1, lst2 = genLists()
 # The figures are currently just populated with test data. The figures are created
 # with the plotly package, so all documentation is via plotly.
 ScatterPlotFig = px.scatter(
-    x=lst1, y=lst2, title="Scatter plot of name lengths"
+    x=lst1, y=lst2, title="" #Title is blank
 ).update_layout(
     xaxis_title="Name length",
     yaxis_title="Name count",
@@ -50,7 +50,7 @@ ScatterPlotFig = px.scatter(
 PieChartFig = px.pie(
     values=countvalues(),
     names=["0.02 - 0.024", "0.024 - 0.026", ">0.026"],
-    title="Piechart for data",
+    title="", #Title is blank
 ).update_layout(margin=dict(l=20, r=20, t=30, b=20))
 
 testDf = pd.read_csv("Dashboard_with_pages\TestCSVLg.csv", delimiter=";")
@@ -61,6 +61,7 @@ layout = html.Div(children=[
 
         html.Div(id="Main-panel", children=[
             html.Div(
+                #Dashboard title
                 html.H1("Anomaly Dashboard", className="FontBold"),
                 id="TitleDIV"
         ),
@@ -79,7 +80,9 @@ layout = html.Div(children=[
                 ])
             )
         ),
-
+        # Dropdown menu - each of the items have been given an id. This is used for callback.
+        # Label is the text being shown on the Dropdown Menu
+        # ClassName/Style doesn't work. Instead toggle_style/toggleClassName is used.
         html.Div(children=[
             dbc.DropdownMenu(
                 label=" Today", 
@@ -101,9 +104,12 @@ layout = html.Div(children=[
             #be updated with the correct data going forward. Should be pretty easily done
             #via dcc callbacks.
             html.Div(children=[
+                #Anomalies box, shows number of anomalies.
                 html.Div(children=[
                     html.Div(children=[
                         html.I(className="bi bi-exclamation-circle fa-2x cardText cardLine FontBold IconBold", style={"float":"left"}),
+                        #This is the three vertical dots. It is commented out since it has no functionality.
+                        #It should not be deleted!
                         #html.I(className="bi bi-three-dots-vertical fa-2x cardText cardLine FontBold", style={"float":"right"})
                         ]
                     ),
@@ -118,9 +124,12 @@ layout = html.Div(children=[
                     style={"margin":"5px","background-color":"#ffffff","height":"37vh","width":"24%","border":"none", "margin-right":"15px"},
                     className="card rounded DropShadow"
                 ),
+                #False-Positives box, shows number of False-Positives.
                 html.Div(children=[
                     html.Div(children=[
                         html.I(className="bi bi-exclamation-triangle fa-2x cardText cardLine FontBold IconBold", style={"float":"left"}),
+                        #This is the three vertical dots. It is commented out since it has no functionality.
+                        #It should not be deleted!
                         #html.I(className="bi bi-three-dots-vertical fa-2x cardText cardLine FontBold", style={"float":"right"})
                         ]
                     ),
@@ -135,6 +144,8 @@ layout = html.Div(children=[
                     style={"margin":"5px","background-color":"#ffffff","height":"37vh","width":"24%","border":"none","margin-right":"37px"},
                     className="card DropShadow"
                 ),
+                #Anomaly Inbox - It is made using a DataTable. It has been populated with test data. This should
+                #be changed at a later time.
                 html.Div(children=[
                     html.Div(children=[
                     html.H5("Anomaly Inbox", className="cardText cardLine card-title FontBold",style={"margin-top": "10px", "float":"left"}),
@@ -157,6 +168,7 @@ layout = html.Div(children=[
                         'fontWeight': 'bold'
                         })
                     ],
+                    # This is styling for the Anomaly Inbox
                     style={"margin":"5px","background-color":"#e0e0d1","height":"50vh","width":"40%","border":"none","margin-top":"-65px"},
                      className="card bg-white rounded DropShadow"
                 ),
@@ -198,6 +210,7 @@ layout = html.Div(children=[
 
 
 # Callbacks define the functionality of the dashboard.
+# Callback for dropdownmenu. The method changes the label of the dropdown menu.
 @callback(
     Output("dropdownmenu", "label"),
     [Input("all_time_option", "n_clicks"), Input("today_option", "n_clicks"),
@@ -217,6 +230,7 @@ def update_dropdownmenu_label(n1,n2,n3,n4,n5,n6):
 
     #This gets the id of the button that triggered the callback
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    #If a button hasn't been clicked, it defaults to today. (Everytime you load the website)
     if button_id == "":
         return " Today"
     return id_lookup[button_id]

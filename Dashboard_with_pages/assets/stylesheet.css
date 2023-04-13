@@ -2,6 +2,7 @@ h1, h2, h3, h4, h5, h6, P {
     font-family: Helvetica;
 }
 
+/* Side buttons that can be found on the left */
 .SideBTN{
     width: 16vw;
     text-align: center;
@@ -10,6 +11,7 @@ h1, h2, h3, h4, h5, h6, P {
     border: none;
 }
 
+/* Each item on side */
 .SideElement {
     display: flex;
     justify-content: center;
@@ -17,6 +19,7 @@ h1, h2, h3, h4, h5, h6, P {
     margin: auto;
 }
 
+/* Background color */
 #background {
     background-color: f0f3f6;
 }
@@ -26,11 +29,13 @@ h1, h2, h3, h4, h5, h6, P {
     margin-left: 2px;
 }
 
+/* For item that needs to be on the same line on a card */
 .cardLine {
     display: inline-block;
 
 }
 
+/* Color when you hover a button */
 .btn-secondary:hover {
     background-color: #1f2d60;
 }
@@ -49,22 +54,25 @@ h1, h2, h3, h4, h5, h6, P {
     color: white;
 }
 
-
+/* Font and weight for all text on the dashboard */
 .FontMain {
     font-family: Inter, sans-serif;
     font-weight: 500;
 }
 
+/* Font and weight for all text on the dashboard that needs to be bold */
 .FontBold {
     font-family: Inter, sans-serif;
     font-weight: 501;
     
 }
 
+/* Makes icon bolder */
 .IconBold {
     -webkit-text-stroke: 0.5px;
 }
 
+/* Red card that can be found on either anomaly/false positive box */
 .RedCard {
     border-radius: 8px;
     background: #fed9e0;
@@ -72,6 +80,7 @@ h1, h2, h3, h4, h5, h6, P {
     background-size: contain;
 }
 
+/* Green card that can be found on either anomaly/false positive box */
 .GreenCard {
     border-radius: 8px;
     background: #e1fada;
@@ -90,6 +99,7 @@ h1, h2, h3, h4, h5, h6, P {
 #Logo {
     text-align: center;
 }
+
 
 .dropdown-toggle::after {
     display:none;
