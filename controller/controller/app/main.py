@@ -26,12 +26,12 @@ get_prediction = f"{anomaly_detector}/logs/getPredict"
 get_LogList = f"{data_generator}/logs/LogList"
 get_record = f"{data_generator}/logs/get_record"
 
-
+#class representing an anolamy.
 class Anomaly(BaseModel):
     log_time: str
     log_message: str
     anomaly_score: float 
-
+#test class for putting false positives into the db. only for testing purpose
 class false_positive_anomoly(BaseModel):
     log_time: str
     log_message: str
@@ -122,7 +122,7 @@ def post_test_anomaly(log_message:str, anomaly_score:float):
     data_writer.write_single_row_to_database(new_post)
     return anomaly
 
-#Endpoint for forcing a custom false positives anomaly into the db - for testing purposes
+#Endpoint for forcing a custom anomaly with false positive as true into the db - for testing purposes
 @app.post("/anomalies/post_test_false_positive",response_model=false_positive_anomoly)
 def post_test_false_positive(log_message:str, anomaly_score:float):
 
@@ -160,6 +160,7 @@ def post_anomaly():
 
 
 #method for checking if the anomoly is a false positive
+#it only takes the log_message into the consideration at the moment. 
 def compare_false_positive(logmessage: str):
     result = data_loader.get_all_false_positives_messages()
     for x in result:
