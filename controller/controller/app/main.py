@@ -72,10 +72,8 @@ def simulateStreamAnalysis():
             analysedMessage = analysedMessage.json()
             if analysedMessage["anomaly_score"] > 0.02:
                 #Replace print with insertion into database
+                requests.get("http://127.0.0.1:8050/flagNewAnomaly")
                 #print(analysedMessage["log_message"])
-                return post_test_anomaly(analysedMessage["log_message"], analysedMessage["anomaly_score"])
-        return Anomaly(log_time="10", log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
-
 
 
 #Function to post an anomaly into db, by getting anomaly from stream and sending the parameters to data_generator, which handles the final insertion into Anomaly db table

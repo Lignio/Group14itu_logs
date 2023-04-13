@@ -4,15 +4,31 @@ import pandas as pd
 import plotly.express as px
 from datetime import date
 import dash_bootstrap_components as dbc
+from flask import Flask
+from flask_caching import Cache
 import random
 from plotly.graph_objs import *
 import requests
+import os
+from flask_restful import Resource, Api
 
 # The app.py page does not actually contain the pages that are being loaded, it is more so a container
 # for pages. It only contains the sidebar (containing buttons to navigate) and a page_container.
 # The page container then loads the actual pages from the pages directory.
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True)
+server = Flask(__name__)
+api = Api(server)
 
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True)
+cache = Cache(app.server, config={
+    'CACHE_TYPE': 'SimpleCache'
+})
+
+cache.set("isFlagged", False)
+
+class Flag(Resource):
+    def get(self):
+        cache.set("isFlagged", True)
+        return cache.get("isFlagged")
 
 app.layout = html.Div(children=[ 
 
@@ -68,6 +84,10 @@ app.layout = html.Div(children=[
             ),
     ], style={"display":"flex","width" : "100vw"})
 
+#@api.post("/flagNewAnomaly")
+#def flag():
+#    cache.set("isFlagged", True)
+#    return cache.get("isFlagged")
 
 @app.callback(
     Output("alertMsg", "is_open"),
@@ -82,17 +102,13 @@ def toggle_alert(n1, n2, n3, is_open):
         return check_for_new_anomalies(is_open)
     else: return not is_open
 
-lastAnomaly = []
-
 def check_for_new_anomalies(is_open):
-    anomalies = requests.get("http://localhost:8002/getAnomalyList?threshold=0.02").json()
-    print(anomalies)
-    if lastAnomaly == []:
-        lastAnomaly = anomalies[len(anomalies)-1]
-    elif lastAnomaly != anomalies[len(anomalies)-1] :
-        lastAnomaly = anomalies[len(anomalies)-1]
+    print(cache.get("isFlagged"))
+    if cache.get("isFlagged"):
+        cache.set("isFlagged", True)
         return True
     return is_open
+
 
 #Debug true allows for hot reloading while writing code.
 if __name__ == "__main__":
