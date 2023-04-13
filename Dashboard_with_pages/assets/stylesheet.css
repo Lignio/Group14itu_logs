@@ -3,5 +3,100 @@ h1, h2, h3, h4, h5, h6, P {
 }
 
 .SideBTN{
-    width: 18vw;
+    width: 16vw;
+    text-align: center;
+    color: white;
+    background-color: #141446;
+    border: none;
 }
+
+.SideElement {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
+}
+
+#background {
+    background-color: f0f3f6;
+}
+
+.cardText {
+    margin-top: 10px;
+    margin-left: 2px;
+}
+
+.cardLine {
+    display: inline-block;
+
+}
+
+.btn-secondary:hover {
+    background-color: #1f2d60;
+}
+
+#Sidebar {
+    background-color: #141446;
+    padding-top: 2%;
+    width: 20vw;
+}
+
+.FontLogo {
+    font-family: Inter, sans-serif;
+    font-style: italic;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: white;
+}
+
+
+.FontMain {
+    font-family: Inter, sans-serif;
+    font-weight: 500;
+}
+
+.FontBold {
+    font-family: Inter, sans-serif;
+    font-weight: 501;
+    
+}
+
+.IconBold {
+    -webkit-text-stroke: 0.5px;
+}
+
+.RedCard {
+    border-radius: 8px;
+    background: #fed9e0;
+    color: #e37c8b;
+    background-size: contain;
+}
+
+.GreenCard {
+    border-radius: 8px;
+    background: #e1fada;
+    color: #86dd6b;
+    background-size: contain;
+}
+
+.FontBlack {
+    color: black;
+}
+
+.FontWhite {
+    color: white;
+}
+
+#Logo {
+    text-align: center;
+}
+
+.dropdown-toggle::after {
+    display:none;
+}
+
+.DropShadow {
+    box-shadow: 0px 5px 11px 1px rgba(72,71,61,0.26);
+}
+
+
