@@ -30,6 +30,7 @@ originalDF["..."] = buttonList
 
 layout = html.Div(children=[
     html.Div(
+            #Anomilies page title
             html.H1("Anomalies", className="FontBold"),
             id="TitleDIV"
         ),
@@ -48,7 +49,7 @@ layout = html.Div(children=[
                 ])
             )
         ),
-
+        #Dropdown menu
         html.Div(
             children=[
                 dcc.Dropdown(
@@ -105,8 +106,9 @@ layout = html.Div(children=[
                 ),
             ]
         ),
-
+        # This Div includes the entire card (Navbar + Datatable).
         html.Div(children=[
+                    #Nav bar, includes icon, three dropdown menu and a search bare.
                     html.Div(children=[
                         html.I(className="bi bi-filter fa-2x cardLine IconBold", style={"float":"left", "margin-left":"5px","margin-right":"15px","margin-top":"-5px"}),
                         dbc.DropdownMenu(
@@ -139,11 +141,13 @@ layout = html.Div(children=[
                                 dbc.DropdownMenuItem("Date 2", id="date_two_option"),
                                 dbc.DropdownMenuItem("Date 3", id="date_three_option" )
                                 ], className="cardLine", id="dropdownmenu_status",style={"margin-right":"8px"}),
+                            #Searchbar currently has not functionality. This can easily be done with callbacks.
                             dbc.Input(id="input", className="bi bi-search fa-2x cardLine", placeholder="Search for an anomaly...", type="text",
                                     style={"width":"25vw","float":"right","background":"#f8f8f8"})
                         ,
                         
                     ], style={"margin":"10px 10px 10px 10px"}),
+                #Anomilies datatable
                 dash_table.DataTable(
                     id="InboxTable",
                     columns=[{"name": i, "id": i} for i in originalDF.columns],
@@ -165,6 +169,7 @@ layout = html.Div(children=[
             style={"margin":"15px","height":"8%","width":"70vw","display" : "flex", "justify-content" : "center"}
         ),
     ],
+    #Style customization for the whole page container:
     style={"padding-left":"30px","padding-top":"20px","background-color":"#f0f3f6","width":"80vw"})
     
 
