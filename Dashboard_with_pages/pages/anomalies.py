@@ -109,7 +109,7 @@ layout = html.Div(children=[
                         })
                     ],
                     className="card bg-white DropShadow",
-                    style={"margin":"15px","height":"8%","width":"70vw"}
+                    style={"margin":"15px","height":"8%","width":"70vw","display" : "flex", "justify-content" : "center"}
                 )
 
-],style={"padding-left":"30px","padding-top":"20px","background-color":"#f0f3f6"})
+],style={"padding-left":"30px","padding-top":"20px","background-color":"#f0f3f6","width":"80vw"})

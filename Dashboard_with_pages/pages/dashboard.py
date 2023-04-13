@@ -225,4 +225,6 @@ def update_dropdownmenu_label(n1,n2,n3,n4,n5,n6):
 
     #This gets the id of the button that triggered the callback
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    if button_id == "":
+        return " Today"
     return id_lookup[button_id]
