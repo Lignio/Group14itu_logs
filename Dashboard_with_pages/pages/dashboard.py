@@ -35,15 +35,7 @@ def countvalues():
     return anomalyToPiechart
 
 lst1, lst2 = genLists()
-
-dropdown = dbc.DropdownMenu(children=[
-                    dbc.DropdownMenuItem("All time"),
-                    dbc.DropdownMenuItem("Today", header="true"),
-                    dbc.DropdownMenuItem("Yesterday"),
-                    dbc.DropdownMenuItem("Last two days"),
-                    dbc.DropdownMenuItem("Last 7 days"),
-                    dbc.DropdownMenuItem("This month")
-            ],label="Today",style={"height":"8vh","width":"12vw","margin-bottom":"20px","display":"flex"})
+    
 
 #The figures are currently just populated with test data. The figures are created
 #with the plotly package, so all documentation is via plotly.
@@ -81,7 +73,7 @@ layout = html.Div(children=[
 
         html.Div(children=[
             dbc.DropdownMenu(
-                label=" Choose Date", 
+                label=" Today", 
                 toggle_style={"background":"white", "color":"black"}, 
                 toggleClassName="border-white DropShadow bi bi-calendar-day",
                 direction="down",
@@ -93,7 +85,7 @@ layout = html.Div(children=[
                 dbc.DropdownMenuItem("Last 7 days", id="last_7_days_option"),
                 dbc.DropdownMenuItem("This month", id="this_month_option")
 
-            ], className="", style={"margin-bottom":"20px"}),
+            ], className="", id="dropdownmenu",style={"margin-bottom":"20px"}),
         ]),
         html.Div(children=[
             #The three boxes on the page are currently hardcoded with values. These should of course
@@ -213,3 +205,24 @@ def update_output(start_date, end_date):
         return 'Select a date to see it displayed here'
     else:
         return string_prefix
+
+@callback(
+    Output("dropdownmenu", "label"),
+    [Input("all_time_option", "n_clicks"), Input("today_option", "n_clicks"),
+     Input("yesterday_option", "n_clicks"), Input("last_two_days_option", "n_clicks"),
+     Input("last_7_days_option", "n_clicks"), Input("this_month_option", "n_clicks")])
+def update_dropdownmenu_label(n1,n2,n3,n4,n5,n6):
+    #Maps the ids of the dropdown menu to their text
+    #and changes the label of the dropdownmenu.
+    id_lookup = {"all_time_option":" All time", 
+                 "today_option":" Today",
+                 "yesterday_option":" Yesterday",
+                 "last_two_days_option":" Last Two Days",
+                 "last_7_days_option":" Last 7 Days",
+                 "this_month_option":" This month"}
+    
+    ctx = dash.callback_context
+
+    #This gets the id of the button that triggered the callback
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    return id_lookup[button_id]
