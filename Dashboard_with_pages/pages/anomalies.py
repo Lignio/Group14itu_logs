@@ -27,7 +27,7 @@ buttonList = []
 for i in originalDF.index:
     buttonList.append("...")
 
-orignialDF["..."] = buttonList
+originalDF["..."] = buttonList
 
 layout = html.Div(
     children=[
@@ -96,8 +96,6 @@ layout = html.Div(
             children=[
                 html.H5("Anomalies", style={"margin-top": "20px"}),
                 dash_table.DataTable(
-
-
                     id="InboxTable",
                     columns=[{"name": i, "id": i} for i in originalDF.columns],
                     editable=True,
@@ -156,9 +154,10 @@ def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
             print(value)
             return not is_open
         if "close" == ctx.triggered_id:
-            return (not is_open, value)
+            return not is_open
         elif col == "...":  # or whatever column you want
             return not is_open
+
 
 def calculate_interval(value):
     today = pd.Timestamp("today").floor("D")
@@ -189,4 +188,3 @@ def adjust_table_to_interval(value):
         (originalDF["Date"] <= interval[0]) & (originalDF["Date"] >= interval[1])
     ]
     return copyDf.to_dict(orient="records")
-
