@@ -8,31 +8,13 @@ from flask import Flask
 from flask_caching import Cache
 from plotly.graph_objs import *
 from flask_restful import Resource, Api
+import requests
 
 # The app.py page does not actually contain the pages that are being loaded, it is more so a container
 # for pages. It only contains the sidebar (containing buttons to navigate) and a page_container.
 # The page container then loads the actual pages from the pages directory.
 
-#Creates server/api
-server = Flask(__name__)
-api = Api(server)
-
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True)
-
-#This chache keeps track of new anomalies.
-cache = Cache(app.server, config={
-    'CACHE_TYPE': 'SimpleCache'
-})
-
-cache.set("isFlagged", False)
-
-#Api call that flags an anomily though the cache.
-class Flag(Resource):
-    def get(self):
-        cache.set("isFlagged", True)
-        return {cache.get("isFlagged")}
-    
-api.add_resource(Flag, "/flagNewAnomaly")    
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True)  
 
 #Layout starts here
 app.layout = html.Div(children=[ 
@@ -81,11 +63,6 @@ app.layout = html.Div(children=[
             ),
     ], style={"display":"flex","width" : "100vw"})
 
-#@api.post("/flagNewAnomaly")
-#def flag():
-#    cache.set("isFlagged", True)
-#    return cache.get("isFlagged")
-
 #Callback that toggles the alert of new anomalies.
 @app.callback(
     Output("alertMsg", "is_open"),
@@ -97,14 +74,12 @@ app.layout = html.Div(children=[
 def toggle_alert(n1, n2, n3, is_open):
     triggered_id = ctx.triggered_id
     if triggered_id == 'interval-component':
-
         return check_for_new_anomalies(is_open)
     else: return not is_open
 
 def check_for_new_anomalies(is_open):
-    print(cache.get("isFlagged"))
-    if cache.get("isFlagged"):
-        cache.set("isFlagged", False)
+    isFlagged = requests.get('http://localhost:8002/checkFlag').json() #Calls checkFlag in Controller
+    if isFlagged:
         return True
     return is_open
 
