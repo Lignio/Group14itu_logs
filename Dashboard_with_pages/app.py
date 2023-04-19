@@ -12,16 +12,21 @@ from flask_restful import Resource, Api
 # The app.py page does not actually contain the pages that are being loaded, it is more so a container
 # for pages. It only contains the sidebar (containing buttons to navigate) and a page_container.
 # The page container then loads the actual pages from the pages directory.
+
+#Creates server/api
 server = Flask(__name__)
 api = Api(server)
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True)
+
+#This chache keeps track of new anomalies.
 cache = Cache(app.server, config={
     'CACHE_TYPE': 'SimpleCache'
 })
 
 cache.set("isFlagged", False)
 
+#Api call that flags an anomily though the cache.
 class Flag(Resource):
     def get(self):
         cache.set("isFlagged", True)
@@ -29,14 +34,12 @@ class Flag(Resource):
     
 api.add_resource(Flag, "/flagNewAnomaly")    
 
+#Layout starts here
 app.layout = html.Div(children=[ 
 
     html.Div(id="Sidebar",children=[
         html.Div(children=[
             html.H2("Systematic"),
-
-            # The alert button is only for development purposes.
-            dbc.Button("Alert", color="primary",id="AlertBTN"),
         ]),
         html.Div(
         [
@@ -50,13 +53,8 @@ app.layout = html.Div(children=[
     
     ],style={"background-color" : "#e0e0d1","width" : "20vw","height" : "160vh"}),
 
-
-
-
     html.Div(id="Main-panel",children=[
-
             dash.page_container
-
     ]),
     dbc.Alert(
         [
@@ -88,6 +86,7 @@ app.layout = html.Div(children=[
 #    cache.set("isFlagged", True)
 #    return cache.get("isFlagged")
 
+#Callback that toggles the alert of new anomalies.
 @app.callback(
     Output("alertMsg", "is_open"),
     Input('interval-component', 'n_intervals'), 
