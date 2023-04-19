@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 dash.register_page(__name__)
 
 
+# Entire html is now moved into a serve_layout() method which allows for reloading data when refreshing the page.
 def serve_layout():
     actualDataDF = getDataDF()
     # Render the layout.
@@ -134,6 +135,7 @@ def serve_layout():
     )
 
 
+# Sets the layout to our serve_layout
 layout = serve_layout
 
 
@@ -152,12 +154,13 @@ layout = serve_layout
 # This is the "method" that handles what pressing on the ... does.
 # It iintially checks if the user has clicked on a cell in the dataframe,
 # and in that case whether or not that cell is a ... cell
-# If it is a ... cell it opens the popup and allow the user to choose desired outcome.
+# If it is a ... cell it opens the popup and allow the user to choose desired outcome
+# It uses api call it update the database with desired data
+# n and ok is unused but need to "burn" the data
 def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
     if active_cell:
         row = active_cell["row"]
         col = active_cell["column_id"]
-        # print(ok)
         if "demo-dropdown" == ctx.triggered_id:
             return is_open
         if "OK" == ctx.triggered_id:
@@ -170,12 +173,10 @@ def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
                 "http://localhost:8002/anomalies/Update_false_positive",
                 params={"uId": selected, "uFalse_Positive": value},
             )
-            print(selected)
-            print(value)
             return not is_open
         if "close" == ctx.triggered_id:
             return not is_open
-        elif col == "...":  # or whatever column you want
+        elif col == "...":
             return not is_open
         elif col == "log_message":
             return is_open
@@ -214,6 +215,7 @@ def adjust_table_to_interval(value):
     return copyDf.to_dict(orient="records")
 
 
+# This method gets and create/recreate the dataframe with data from the database.
 def getDataDF():
     data = requests.get("http://localhost:8002/anomalies/get_anomaly_list").json()
     jsonData = json.dumps(data)
@@ -227,11 +229,3 @@ def getDataDF():
     actualDataDF["..."] = buttonList
     pd.options.display.width = 10
     return actualDataDF
-
-
-"""@callback(Output('url', 'pathname'),
-              [Input('OK', 'n_clicks')],
-              [State('url', 'pathname')])
-def navigate_to_anomalies(n_clicks, pathname):
-    if n_clicks:
-        return pathname"""
