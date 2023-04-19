@@ -6,10 +6,7 @@ from datetime import date
 import dash_bootstrap_components as dbc
 from flask import Flask
 from flask_caching import Cache
-import random
 from plotly.graph_objs import *
-import requests
-import os
 from flask_restful import Resource, Api
 
 # The app.py page does not actually contain the pages that are being loaded, it is more so a container
