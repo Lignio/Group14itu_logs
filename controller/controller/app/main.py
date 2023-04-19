@@ -55,7 +55,7 @@ def getAnomalyList(threshold: float = 0.02):
 logQueue = queue.Queue(1000)
 
 # Method for simlating getting constant steam of mesagges and inserting them into the queue
-def simulateLogsteam():
+def simulateLogstream():
     while True:
         # Missing load balancing when queue is full
         myLogmessage = requests.get(get_record).json()
@@ -133,12 +133,12 @@ def post_anomaly():
     return anomaly
 
 
+@app.get("/anomalies/start_stream")
+def start_stream():
+    t = threading.Thread(target=simulateLogstream)
+    t.daemon = True
+    t.start()
+    t2 = threading.Thread(target=simulateStreamAnalysis)
+    t2.daemon = True
+    t2.start()
 
-
-
-t = threading.Thread(target=simulateLogsteam)
-t.daemon = True
-t.start()
-t2 = threading.Thread(target=simulateStreamAnalysis)
-t2.daemon = True
-t2.start()
