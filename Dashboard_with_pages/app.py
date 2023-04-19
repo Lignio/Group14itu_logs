@@ -28,7 +28,9 @@ cache.set("isFlagged", False)
 class Flag(Resource):
     def get(self):
         cache.set("isFlagged", True)
-        return cache.get("isFlagged")
+        return {cache.get("isFlagged")}
+    
+api.add_resource(Flag, "/flagNewAnomaly")    
 
 app.layout = html.Div(children=[ 
 
@@ -67,7 +69,7 @@ app.layout = html.Div(children=[
             ),
             html.Div(
                 [dbc.Button(
-                    "Not now", id="later", className="ms-auto"
+                    "Dismis", id="dismis", className="ms-auto"
                 ),
                 dbc.Button(
                     "Go to anomaly", id="goTo", className="ms-auto", n_clicks=0, href= '/anomalies'
@@ -93,19 +95,20 @@ app.layout = html.Div(children=[
     Output("alertMsg", "is_open"),
     Input('interval-component', 'n_intervals'), 
     Input("goTo", "n_clicks"), 
-    Input("later", "n_clicks"),
+    Input("dismis", "n_clicks"),
     State("alertMsg", "is_open"),
 )
 def toggle_alert(n1, n2, n3, is_open):
     triggered_id = ctx.triggered_id
     if triggered_id == 'interval-component':
+
         return check_for_new_anomalies(is_open)
     else: return not is_open
 
 def check_for_new_anomalies(is_open):
     print(cache.get("isFlagged"))
     if cache.get("isFlagged"):
-        cache.set("isFlagged", True)
+        cache.set("isFlagged", False)
         return True
     return is_open
 
