@@ -69,8 +69,6 @@ def simulateLogsteam():
         logQueue.put(myLogmessage) # Put blocks/waits when the queue is full
     
 
-
-
 #Method for analysing and handeling log messages in the queue.
 def simulateStreamAnalysis():
     while True:
@@ -80,34 +78,14 @@ def simulateStreamAnalysis():
             if analysedMessage["anomaly_score"] > 0.02:
                 #Replace print with insertion into database
                 #print(analysedMessage["log_message"])
-                return post_test_anomaly(analysedMessage["log_message"], analysedMessage["anomaly_score"])
+                return post_anomaly(analysedMessage["log_message"], analysedMessage["anomaly_score"]) #changed post_test_anomaly to post_anomaly - may cause problems
         return Anomaly(log_time="10", log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
 
 
-
-#Function to post an anomaly into db, by getting anomaly from stream and sending the parameters to data_generator, which handles the final insertion into Anomaly db table
-@app.post("/postAnomaly_stream")
-def postAnomaly():
-    while True:
-        while logQueue.not_empty:
-            myLogmessage = requests.get(get_record)
-            analysedMessage = requests.get(get_prediction, params={"log_message":myLogmessage,"threshold":0.02 })
-            analysedMessage = analysedMessage.json()
-            if analysedMessage["anomaly_score"] > 0.02:
-              # Replace print with insertion into database
-                #requests.post('http://localhost:8000/anomalies/post_anomaly', params={"log_message":analysedMessage["log_message"], "anomaly_score":analysedMessage["anomaly_score"] })
-                #print(analysedMessage["log_message"])
-                return post_test_anomaly(analysedMessage["log_message"], analysedMessage["anomaly_score"])
-            return Anomaly(log_time="10", log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
-
-
-
-#----------------------------------------------------------------------------------------------
 @app.get("/anomalies/get_anomaly_list")
 def get_anomaly_list():
 
     return data_loader.get_all_anomalies()
-
 
 #Endpoint for forcing a custom anomaly into the db - for testing purposes
 #Note: this does not account for the anomaly threshold - this is purely for inserting ANYTHING into the database for testing
@@ -147,13 +125,13 @@ def post_anomaly():
     dt = datetime.now()
     dts = dt.strftime('%d/%m/%Y')
     
-
     anomaly = Anomaly(log_time=dts, log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
     if analysedMessage["anomaly_score"] > 0.02:
         is_positive = compare_false_positive(analysedMessage.log_message) #checks if anomoly is false positive
         if is_positive == True:
            return anomaly
         #anomaly = Anomaly(log_time=analysedMessage["log_time"], log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
+
         new_post = Anomalies(**anomaly.dict())
         data_writer.write_single_row_to_database(new_post)
     return anomaly
@@ -167,7 +145,6 @@ def compare_false_positive(logmessage: str):
         if logmessage == x:
             return True
     return False
-    
 
 t = threading.Thread(target=simulateLogsteam)
 t.daemon = True
