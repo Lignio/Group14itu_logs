@@ -77,7 +77,7 @@ app.layout = html.Div(
             id="alertMsg",
             is_open=False,  # Not sure if this line should be here.
         ),
-        dcc.Interval(id="interval-component", interval=1 * 10000, n_intervals=0),
+        dcc.Interval(id="interval-component", interval=1 * 5000, n_intervals=0),
     ],
     style={"display": "flex", "width": "100vw"},
 )
