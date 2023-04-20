@@ -7,22 +7,22 @@ from plotly.graph_objs import *
 import requests
 from pydantic import BaseSettings
 
-
-class Settings(BaseSettings):
-    controller: str
-
-
-settings = Settings()
-
-controller = settings.controller
-
-check_flag = f"{controller}/checkFlag"
-
 # The app.py page does not actually contain the pages that are being loaded, it is more so a container
 # for pages. It only contains the sidebar (containing buttons to navigate) and a page_container.
 # The page container then loads the actual pages from the pages directory.
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True)
+
+# class Settings(BaseSettings):
+#    controller: str
+
+
+# settings = Settings()
+
+# controller = settings.controller
+
+# check_flag = f"{controller}/checkFlag"
+
 
 # Layout starts here
 app.layout = html.Div(
@@ -96,7 +96,8 @@ def toggle_alert(n1, n2, n3, is_open):
 
 
 def check_for_new_anomalies(is_open):
-    isFlagged = requests.get(check_flag).json()  # Calls checkFlag in Controller
+    # isFlagged = requests.get(check_flag).json()  # Calls checkFlag in Controller
+    isFlagged = requests.get("https://localhost:8001")
     if isFlagged:
         return True
     return is_open
