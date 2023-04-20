@@ -6,6 +6,7 @@ from datetime import date
 import dash_bootstrap_components as dbc
 import random
 from plotly.graph_objs import *
+from keycloak import KeycloakOpenID
 import requests
 
 ##The app.py page does not actually contain the pages that are being loaded, it is more so a container
@@ -13,12 +14,24 @@ import requests
 #The page container then loads the actual pages from the pages directory.
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], use_pages=True)
 
+keycloak_openid = KeycloakOpenID(server_url="http://localhost:8080/",
+                                 client_id="myclient",
+                                 realm_name="dash",
+                                 client_secret_key="3eWiHilBFOVjBuFf6rshHqv0rn4aSSdz")
+
+print(keycloak_openid)
+
+token = keycloak_openid.token("testuser", "test")
+userinfo = keycloak_openid.userinfo(token['access_token'])
+print(userinfo)
 
 app.layout = html.Div(children=[ 
 
     html.Div(id="Sidebar",children=[
         html.Div(children=[
+            html.Div(id="hidden_div_for_redirect_callback"),
             html.H2("SYSTEMATIC",className="FontLogo",id="Logo"),
+            dbc.Button("Redirect", color="secondary", id="redirectBTN",href='http://localhost:8080/realms/dash/account/#/'),
 
             ##The modal button is only for showing a pop up and the callback associated with a pop up.
             #It should be deleted at some point.
@@ -66,11 +79,15 @@ def toggle_modal(n1, is_open):
         return not is_open
     return is_open
 
+
+
 app.callback(
     Output("modal-sm", "is_open"),
     Input("ModalBTN", "n_clicks"),
     State("modal-sm", "is_open"),
 )(toggle_modal)
+
+
 
 #Debug true allows for hot reloading while writing code.
 if __name__ == "__main__":
