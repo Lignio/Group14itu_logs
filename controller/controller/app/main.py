@@ -25,7 +25,6 @@ get_prediction = f"{anomaly_detector}/logs/getPredict"
 get_LogList = f"{data_generator}/logs/LogList"
 get_record = f"{data_generator}/logs/get_record"
 
-
 class Anomaly(BaseModel):
     log_time: str
     log_message: str
@@ -60,9 +59,12 @@ def simulateLogstream():
         # Missing load balancing when queue is full
         myLogmessage = requests.get(get_record).json()
         logQueue.put(myLogmessage) # Put blocks/waits when the queue is full
-    
 
+#Class for caching the flagged value    
+class Flag:
+    isFlagged = False
 
+anomalyFlag = Flag()    
 
 #Method for analysing and handeling log messages in the queue.
 def simulateStreamAnalysis():
@@ -72,10 +74,15 @@ def simulateStreamAnalysis():
             analysedMessage = analysedMessage.json()
             if analysedMessage["anomaly_score"] > 0.02:
                 #Replace print with insertion into database
-                response = requests.get("http://127.0.0.1:8050/flagNewAnomaly")
-                print("Meh")
+                #Flag anomaly for front-end use
+                anomalyFlag.isFlagged = True
                 #print(analysedMessage["log_message"])
 
+@app.get("/check_flag")
+def checkFlag():
+    flag = anomalyFlag.isFlagged
+    anomalyFlag.isFlagged = False
+    return flag
 
 #Function to post an anomaly into db, by getting anomaly from stream and sending the parameters to data_generator, which handles the final insertion into Anomaly db table
 @app.post("/postAnomaly_stream")
