@@ -26,7 +26,7 @@ get_prediction = f"{anomaly_detector}/logs/getPredict"
 get_LogList = f"{data_generator}/logs/LogList"
 get_record = f"{data_generator}/logs/get_record"
 
-#class representing an anolamy.
+#class representing an anomaly.
 class Anomaly(BaseModel):
     log_time: str
     log_message: str
