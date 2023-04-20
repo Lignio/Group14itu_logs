@@ -67,7 +67,7 @@ def serve_layout():
                                     ]
                                 ),
                             ),
-                            # This is the closing buttons for the popup - OK to confirm the chosen marking of an anomaly/cancel to cancel.
+                            # This is the buttons for the popup - OK to confirm the chosen marking of an anomaly/cancel to cancel.
                             dbc.ModalFooter(
                                 children=[
                                     html.A(

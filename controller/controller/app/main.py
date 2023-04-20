@@ -98,31 +98,7 @@ def simulateStreamAnalysis():
                 data_writer.write_single_row_to_database(new_post)
 
 
-# Function to post an anomaly into db, by getting anomaly from stream and sending the parameters to data_generator, which handles the final insertion into Anomaly db table
-@app.post("/postAnomaly_stream")
-def postAnomaly():
-    while True:
-        while logQueue.not_empty:
-            myLogmessage = requests.get(get_record)
-            analysedMessage = requests.get(
-                get_prediction, params={"log_message": myLogmessage, "threshold": 0.02}
-            )
-            analysedMessage = analysedMessage.json()
-            if analysedMessage["anomaly_score"] > 0.02:
-                # Replace print with insertion into database
-                # requests.post('http://localhost:8000/anomalies/post_anomaly', params={"log_message":analysedMessage["log_message"], "anomaly_score":analysedMessage["anomaly_score"] })
-                # print(analysedMessage["log_message"])
-                return post_test_anomaly(
-                    analysedMessage["log_message"], analysedMessage["anomaly_score"]
-                )
-            return Anomaly(
-                log_time="10",
-                log_message=analysedMessage["log_message"],
-                anomaly_score=analysedMessage["anomaly_score"],
-            )
-
-
-# ----------------------------------------------------------------------------------------------
+# Gets all anomalies
 @app.get("/anomalies/get_anomaly_list")
 def get_anomaly_list():
     return data_loader.get_all_anomalies()
@@ -160,16 +136,6 @@ def post_anomaly():
 def update_false_postive(uId: int, uFalse_Positive: bool):
     anomaly = data_loader.get_Anomaly(uId)
     data_writer.change_false_positive(anomaly, uFalse_Positive)
-
-
-@app.put("/anomalies/testUpdate_fp")
-def testUpdate_fp():
-    data_writer.test_fp()
-
-
-@app.post("/anomalies/testPost")
-def testPost():
-    data_writer.write_test()
 
 
 # Starts two threads, one simulation the log stream, the other simulating stream analysis

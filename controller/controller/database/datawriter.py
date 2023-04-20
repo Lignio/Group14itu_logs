@@ -28,25 +28,3 @@ class DataWriter:
         with Session(self.engine) as session:
             session.add(anomaly)
             session.commit()
-
-    def test_fp(self):
-        with Session(self.engine) as session:
-            statement = select(Anomalies).where(Anomalies.id == 1)
-            result = session.exec(statement)
-            anomaly = result.one()
-            anomaly.false_positive = True
-            session.add(anomaly)
-            session.commit()
-            session.refresh(anomaly)
-
-    def write_test(self):
-        data = Anomalies(
-            id=100069,
-            log_time="yee",
-            log_message="Yeeeeeeee",
-            anomaly_score=0.2,
-            false_positive=True,
-        )
-        with Session(self.engine) as session:
-            session.add(data)
-            session.commit()
