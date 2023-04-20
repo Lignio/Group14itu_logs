@@ -2,12 +2,8 @@ from dash import Dash, dcc, html, Input, Output, State, ctx
 import dash
 import pandas as pd
 import plotly.express as px
-from datetime import date
 import dash_bootstrap_components as dbc
-from flask import Flask
-from flask_caching import Cache
 from plotly.graph_objs import *
-from flask_restful import Resource, Api
 import requests
 from pydantic import BaseSettings
 

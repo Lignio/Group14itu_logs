@@ -1,21 +1,17 @@
-from turtle import st
 from dash import Dash, dcc, html, Input, Output, callback, dash_table, State, ctx
 import pandas as pd
 import dash
 import plotly.express as px
-from datetime import date
 import dash_bootstrap_components as dbc
-import random
 from plotly.graph_objs import *
 from pages.testdata import genLists
-from datetime import datetime, timedelta
 
 
 dash.register_page(__name__)
 
 
 # Not an actual page yet. Just for showing that pages can be changed.
-originalDF = pd.read_csv("Dashboard_with_pages/TestCSVLg.csv", delimiter=";")
+originalDF = pd.read_csv("TestCSVLg.csv", delimiter=";")
 originalDF["Date"] = pd.to_datetime(
     originalDF["Date"], format="%d/%m/%Y", dayfirst=True
 )
@@ -96,8 +92,6 @@ layout = html.Div(
             children=[
                 html.H5("Anomalies", style={"margin-top": "20px"}),
                 dash_table.DataTable(
-
-
                     id="InboxTable",
                     columns=[{"name": i, "id": i} for i in originalDF.columns],
                     editable=True,
@@ -160,6 +154,7 @@ def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
         elif col == "...":  # or whatever column you want
             return not is_open
 
+
 def calculate_interval(value):
     today = pd.Timestamp("today").floor("D")
     match value:
@@ -189,4 +184,3 @@ def adjust_table_to_interval(value):
         (originalDF["Date"] <= interval[0]) & (originalDF["Date"] >= interval[1])
     ]
     return copyDf.to_dict(orient="records")
-

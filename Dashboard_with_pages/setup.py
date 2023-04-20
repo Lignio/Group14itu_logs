@@ -6,7 +6,7 @@ import platform
 from setuptools import find_packages, setup
 
 VERSION = "0.1.0"
-NAME = "frontend"
+NAME = "Dashboard_with_pages"
 DESCRIPTION = ""
 AUTHORS = "Mico Bøje"
 
@@ -43,6 +43,8 @@ dependent_packages = {
     "tenacity": ("8.2.2", CORE),
     "Werkzeug": ("2.2.3", CORE),
     "pandas": ("1.5.3", CORE),
+    "requests": ("2.28.2", CORE),
+    "pydantic": ("1.10.6", CORE),
 }
 
 tag_to_packages: dict = {extra: [] for extra in REQUIREMENTS_GROUPS}
