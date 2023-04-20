@@ -61,11 +61,19 @@ class DataLoader():
             statement = select(Anomalies.anomaly_score).where(Anomalies.id == log_id)
             result = session.exec(statement).one()   
             return result 
+        
     def get_all_false_positives(self):
         with Session(self.engine) as session:
             statement = select(Anomalies).where(Anomalies.false_positive == True)
             result = session.exec(statement).all()
-            return result   
+            return result
+        
+    def get_all_false_positives_messages(self):
+        with Session(self.engine) as session:
+            statement = select(Anomalies.log_message).where(Anomalies.false_positive == True)
+            result = session.exec(statement).all()
+            return result
+           
     def get_count_false_positives(self):
         with Session(self.engine) as session:
             statement = select(func.count(Anomalies.id)).where(Anomalies.false_positive == True)
