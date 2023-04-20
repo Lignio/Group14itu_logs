@@ -58,7 +58,7 @@ app.layout = html.Div(children=[
     ),
     dcc.Interval(
                 id='interval-component',
-                interval=1 * 10000,
+                interval=1 * 5000, #The interval for checking if any new anomalies are flagged.
                 n_intervals=0
             ),
     ], style={"display":"flex","width" : "100vw"})
