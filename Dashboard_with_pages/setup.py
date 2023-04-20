@@ -28,19 +28,21 @@ TEST = "test, full"
 INFERENCE = "inference, full"
 
 dependent_packages = {
-    # For shared libraries
-    "loguru": ("0.6.0", CORE),
-    "python-dotenv": ("0.21.0", CORE),
-    "sqlmodel": ("0.0.8", CORE),
-    # "psycopg2": ("2.9.5", CORE),
-    "psycopg2-binary": ("2.9.5", CORE),
-    "fastapi": ("0.92.0", CORE),
-    "uvicorn": ("0.20.0", CORE),
-    "requests": ("2.28.2", CORE),
-    # For tests
-    "pytest": ("7.1.3", TEST),
-    # For inference
-    "onnx": ("1.11.0", INFERENCE),
+    "click": ("8.1.3", CORE),
+    "colorama": ("0.4.6", CORE),
+    "dash": ("2.8.1", CORE),
+    "dash-core-components": ("2.0.0", CORE),
+    "dash-html-components": ("2.0.0", CORE),
+    "dash_bootstrap_components": ("1.4.1", CORE),
+    "dash-table": ("5.0.0", CORE),
+    "Flask": ("2.2.3", CORE),
+    "itsdangerous": ("2.1.2", CORE),
+    "Jinja2": ("3.1.2", CORE),
+    "MarkupSafe": ("2.1.2", CORE),
+    "plotly": ("5.13.1", CORE),
+    "tenacity": ("8.2.2", CORE),
+    "Werkzeug": ("2.2.3", CORE),
+    "pandas": ("1.5.3", CORE),
 }
 
 tag_to_packages: dict = {extra: [] for extra in REQUIREMENTS_GROUPS}
