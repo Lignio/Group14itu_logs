@@ -25,7 +25,7 @@ def serve_layout():
     return html.Div(
         children=[
             html.Div(
-                # Anomilies page title
+                # Anomalies page title
                 html.H1("Anomalies", className="FontBold"),
                 id="TitleDIV",
             ),
