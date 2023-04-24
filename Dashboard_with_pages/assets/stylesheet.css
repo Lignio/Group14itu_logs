@@ -109,4 +109,11 @@ h1, h2, h3, h4, h5, h6, P {
     box-shadow: 0px 5px 11px 1px rgba(72,71,61,0.26);
 }
 
-
+#alertMsg {
+    position: absolute;
+    bottom:0;
+    right:0;
+    color: black;
+    border-style: solid;
+    border-color: red;
+}
