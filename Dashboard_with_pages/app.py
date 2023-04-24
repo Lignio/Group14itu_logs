@@ -34,29 +34,6 @@ app.layout = html.Div(
         html.Div(
             id="Sidebar",
             children=[
-                dbc.Alert(
-                    [
-                        html.H4(
-                            "New anomaly detected. \U0001f6d1",
-                            className="alert-heading",
-                        ),
-                        html.P("Choose to review it now or later."),
-                        html.Div(
-                            [
-                                dbc.Button("Dismis", id="dismis", className="ms-auto"),
-                                dbc.Button(
-                                    "Go to anomaly",
-                                    id="goTo",
-                                    className="ms-auto",
-                                    n_clicks=0,
-                                    href="/anomalies",
-                                ),
-                            ]
-                        ),
-                    ],
-                    id="alertMsg",
-                    is_open=False,  # Not sure if this line should be here.
-                ),
                 dcc.Interval(id="interval-component", interval=1 * 5000, n_intervals=0),
                 html.Div(
                     children=[
@@ -99,6 +76,36 @@ app.layout = html.Div(
             ],
         ),
         html.Div(id="Main-panel", children=[dash.page_container]),
+        dbc.Alert(
+                    [
+                        html.H4(
+                            "New anomaly detected",
+                            className="alert-heading",
+                        ),
+                        html.P("Choose to review it now or later"),
+                        html.Div(
+                            [
+                                dbc.Button(
+                                    "Dismiss",
+                                    id="dismiss", className=" alertBtn",
+                                    style={"float":"left"}
+                                    ),
+                                dbc.Button(
+                                    "Go to anomaly",
+                                    id="goTo",
+                                    className="alertBtn",
+                                    n_clicks=0,
+                                    href="/anomalies",
+                                    style={"float":"right"}
+                                ),
+                            ],
+                            id="alertBtnContainer"
+                        ),
+                    ],
+                    id="alertMsg",
+                    color="light",
+                    is_open=False,  # Not sure if this line should be here.
+                ),
     ],
     style={"display": "flex", "width": "100vw"},
 )
@@ -109,7 +116,7 @@ app.layout = html.Div(
     Output("alertMsg", "is_open"),
     Input("interval-component", "n_intervals"),
     Input("goTo", "n_clicks"),
-    Input("dismis", "n_clicks"),
+    Input("dismiss", "n_clicks"),
     State("alertMsg", "is_open"),
 )
 def toggle_alert(n1, n2, n3, is_open):

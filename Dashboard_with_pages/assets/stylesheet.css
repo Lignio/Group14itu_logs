@@ -109,4 +109,27 @@ h1, h2, h3, h4, h5, h6, P {
     box-shadow: 0px 5px 11px 1px rgba(72,71,61,0.26);
 }
 
+#alertMsg {
+    position: fixed;
+    bottom:0;
+    right: 15px;
+    color: black;
+    border-style: solid;
+    border-color: red;
+    box-shadow: 0px 5px 11px 1px rgba(72,71,61,0.26);
+}
 
+#alertBtnContainer {
+    display: flex;
+    justify-content: space-between;
+}
+
+.alertBtn {
+    background-color: #141446;
+    border: none;
+}
+
+.alertBtn:hover {
+    background-color: #1f2d60;
+    border: none;
+}
