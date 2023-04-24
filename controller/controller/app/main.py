@@ -1,5 +1,6 @@
 from typing import Union
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import requests
 import json
@@ -25,12 +26,18 @@ get_prediction = f"{anomaly_detector}/logs/getPredict"
 get_LogList = f"{data_generator}/logs/LogList"
 get_record = f"{data_generator}/logs/get_record"
 
-
+#class representing an anomaly.
 class Anomaly(BaseModel):
     log_time: str
     log_message: str
     anomaly_score: float
 
+#test class for putting false positives into the db. only for testing purpose
+class false_positive_anomoly(BaseModel):
+    log_time: str
+    log_message: str
+    anomaly_score: float
+    false_positive: bool
 
 # Function that calls the data-generator api for a list of the first 1000 logs and then calls the anomaly-detector api
 # to check which of those logs are a anomaly. It then returns a list of all anomalies and there anomaly-score.
@@ -95,6 +102,33 @@ def simulateStreamAnalysis():
 def get_anomaly_list():
     return data_loader.get_all_anomalies()
 
+#Endpoint for forcing a custom anomaly into the db - for testing purposes
+#Note: this does not account for the anomaly threshold - this is purely for inserting ANYTHING into the database for testing
+@app.post("/anomalies/post_test_anomaly",response_model=Anomaly)
+def post_test_anomaly(log_message:str, anomaly_score:float):
+
+    dt = datetime.now()
+    dts = dt.strftime('%d/%m/%Y')
+
+    anomaly = Anomaly(log_time=dts,log_message=log_message, anomaly_score=anomaly_score)
+    new_post = Anomalies(**anomaly.dict())
+    data_writer.write_single_row_to_database(new_post)
+    return anomaly
+
+#Endpoint for forcing a custom anomaly with false positive as true into the db - for testing purposes
+@app.post("/anomalies/post_test_false_positive",response_model=false_positive_anomoly)
+def post_test_false_positive(log_message:str, anomaly_score:float):
+
+    dt = datetime.now()
+    dts = dt.strftime('%d/%m/%Y')
+
+    anomaly = false_positive_anomoly(log_time=dts,log_message=log_message, anomaly_score=anomaly_score, false_positive=True)
+    is_positive = compare_false_positive(anomaly.log_message) #checks if anomoly is false positive
+    if is_positive == True:
+       return anomaly
+    new_post = Anomalies(**anomaly.dict())
+    data_writer.write_single_row_to_database(new_post)
+    return anomaly
 
 # Endpoint for getting a log from the datagenerator, and inserting into the db if it is an anomaly
 @app.post("/anomalies/post_anomaly", response_model=Anomaly)
@@ -119,9 +153,14 @@ def post_anomaly():
             log_message=analysedMessage["log_message"],
             anomaly_score=analysedMessage["anomaly_score"],
         )
+        is_positive = compare_false_positive(analysedMessage.log_message) #checks if anomoly is false positive
+        if is_positive == True:
+           return anomaly
+        #anomaly = Anomaly(log_time=analysedMessage["log_time"], log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
         new_post = Anomalies(**anomaly.dict())
         data_writer.write_single_row_to_database(new_post)
     return anomaly
+
 
 
 @app.put("/anomalies/Update_false_positive")
@@ -139,3 +178,13 @@ def start_stream():
     t2 = threading.Thread(target=simulateStreamAnalysis)
     t2.daemon = True
     t2.start()
+
+#method for checking if the anomoly is a false positive
+#it only takes the log_message into the consideration at the moment. 
+def compare_false_positive(logmessage: str):
+    result = data_loader.get_all_false_positives_messages()
+    for x in result:
+        if logmessage == x:
+            return True
+    return False
+
