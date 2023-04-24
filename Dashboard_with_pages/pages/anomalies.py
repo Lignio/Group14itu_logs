@@ -1,12 +1,10 @@
+
 import json
-from turtle import st
 from dash import Dash, dcc, html, Input, Output, callback, dash_table, State, ctx
 import pandas as pd
 import dash
 import plotly.express as px
-from datetime import date
 import dash_bootstrap_components as dbc
-import random
 from plotly.graph_objs import *
 import requests
 from flask import request
@@ -16,6 +14,7 @@ import time
 
 
 dash.register_page(__name__)
+
 
 
 # Entire html is now moved into a serve_layout() method which allows for reloading data when refreshing the page.

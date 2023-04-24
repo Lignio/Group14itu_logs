@@ -26,7 +26,9 @@ get_prediction = f"{anomaly_detector}/logs/getPredict"
 get_LogList = f"{data_generator}/logs/LogList"
 get_record = f"{data_generator}/logs/get_record"
 
+
 #class representing an anomaly.
+
 class Anomaly(BaseModel):
     log_time: str
     log_message: str
@@ -64,7 +66,7 @@ def getAnomalyList(threshold: float = 0.02):
 logQueue = queue.Queue(1000)
 
 
-# Method for simlating getting constant steam of messages and inserting them into the queue
+# Method for simulating getting constant steam of mesagges and inserting them into the queue
 def simulateLogstream():
     while True:
         # Missing load balancing when queue is full
@@ -92,10 +94,39 @@ def simulateStreamAnalysis():
             )
 
             if analysedMessage["anomaly_score"] > 0.02:
-                # Replace print with insertion into database
-                # print(analysedMessage["log_message"])
+                #Flag anomaly for front-end use
+                anomalyFlag.isFlagged = True
                 new_post = Anomalies(**anomaly.dict())
                 data_writer.write_single_row_to_database(new_post)
+
+
+#Class for caching the flagged value    
+class Flag:
+    isFlagged = False
+
+anomalyFlag = Flag()    
+
+
+@app.get("/check_flag")
+def checkFlag():
+    flag = anomalyFlag.isFlagged
+    anomalyFlag.isFlagged = False
+    return flag
+
+#Function to post an anomaly into db, by getting anomaly from stream and sending the parameters to data_generator, which handles the final insertion into Anomaly db table
+@app.post("/postAnomaly_stream")
+def postAnomaly():
+    while True:
+        while logQueue.not_empty:
+            myLogmessage = requests.get(get_record)
+            analysedMessage = requests.get(get_prediction, params={"log_message":myLogmessage,"threshold":0.02 })
+            analysedMessage = analysedMessage.json()
+            if analysedMessage["anomaly_score"] > 0.02:
+              # Replace print with insertion into database
+                #requests.post('http://localhost:8000/anomalies/post_anomaly', params={"log_message":analysedMessage["log_message"], "anomaly_score":analysedMessage["anomaly_score"] })
+                #print(analysedMessage["log_message"])
+                return post_test_anomaly(analysedMessage["log_message"], analysedMessage["anomaly_score"])
+            return Anomaly(log_time="10", log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
 
 
 @app.get("/anomalies/get_anomaly_list")
@@ -163,6 +194,7 @@ def post_anomaly():
 
 
 
+
 @app.put("/anomalies/Update_false_positive")
 def update_false_postive(uId: int, uFalse_Positive: bool):
     anomaly = data_loader.get_Anomaly(uId)
@@ -170,6 +202,7 @@ def update_false_postive(uId: int, uFalse_Positive: bool):
 
 
 # Starts two threads, one simulates the log stream, the other simulates stream analysis
+
 @app.get("/anomalies/start_stream")
 def start_stream():
     t = threading.Thread(target=simulateLogstream)
@@ -179,7 +212,8 @@ def start_stream():
     t2.daemon = True
     t2.start()
 
-#method for checking if the anomoly is a false positive
+
+#method for checking if the anomaly is a false positive
 #it only takes the log_message into the consideration at the moment. 
 def compare_false_positive(logmessage: str):
     result = data_loader.get_all_false_positives_messages()
