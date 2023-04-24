@@ -38,6 +38,22 @@ def countvalues():
     return anomalyToPiechart
 
 
+# This method gets and creates/recreates the dataframe with data from the database.
+def getDataDF():
+    data = requests.get("http://localhost:8002/anomalies/get_anomaly_list").json()
+    jsonData = json.dumps(data)
+    actualDataDF = pd.read_json(jsonData)
+    actualDataDF = actualDataDF.reindex(
+        columns=["id", "log_message", "log_time", "false_positive", "anomaly_score"]
+    )
+    buttonList = []
+    for i in actualDataDF.index:
+        buttonList.append("...")
+    actualDataDF["..."] = buttonList
+    pd.options.display.width = 10
+    return actualDataDF
+
+
 lst1, lst2 = genLists()
 
 # The figures are currently just populated with test data. The figures are created
@@ -53,7 +69,7 @@ PieChartFig = px.pie(
     title="",  # Title is blank
 ).update_layout(margin=dict(l=20, r=20, t=30, b=20))
 
-testDf = pd.read_csv("Dashboard_with_pages/TestCSVLg.csv", delimiter=";")
+dataFrame = getDataDF()
 
 # Layout = html.Div defines the out container of the whole page.
 # "children =[]" is needed when more than 1 html element is present within the container.
@@ -292,11 +308,11 @@ layout = html.Div(
                                             ]
                                         ),
                                         dash_table.DataTable(
-                                            testDf.to_dict("records"),
+                                            dataFrame.to_dict("records"),
                                             id="InboxTable",
                                             columns=[
                                                 {"name": i, "id": i}
-                                                for i in testDf.columns
+                                                for i in dataFrame.columns
                                             ],
                                             editable=True,
                                             sort_action="native",
@@ -437,19 +453,3 @@ def update_dropdownmenu_label(n1, n2, n3, n4, n5, n6):
     if button_id == "":
         return " Today"
     return id_lookup[button_id]
-
-
-# This method gets and creates/recreates the dataframe with data from the database.
-def getDataDF():
-    data = requests.get("http://localhost:8002/anomalies/get_anomaly_list").json()
-    jsonData = json.dumps(data)
-    actualDataDF = pd.read_json(jsonData)
-    actualDataDF = actualDataDF.reindex(
-        columns=["id", "log_message", "log_time", "false_positive", "anomaly_score"]
-    )
-    buttonList = []
-    for i in actualDataDF.index:
-        buttonList.append("...")
-    actualDataDF["..."] = buttonList
-    pd.options.display.width = 10
-    return actualDataDF

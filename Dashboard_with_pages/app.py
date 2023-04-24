@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, Input, Output, State
+from dash import Dash, dcc, html, Input, Output, State, ctx
 import dash
 import pandas as pd
 import plotly.express as px
@@ -7,6 +7,17 @@ import dash_bootstrap_components as dbc
 import random
 from plotly.graph_objs import *
 import requests
+
+from pydantic import BaseSettings
+
+# class Settings(BaseSettings):
+#    controller: str
+
+# settings = Settings()
+
+# controller = settings.controller
+
+# check_flag = f"{controller}/checkFlag"
 
 ##The app.py page does not actually contain the pages that are being loaded, it is more so a container
 # for pages. It only contains the sidebar (containing buttons to navigate) and a page_container.
@@ -23,28 +34,40 @@ app.layout = html.Div(
         html.Div(
             id="Sidebar",
             children=[
+                dbc.Alert(
+                    [
+                        html.H4(
+                            "New anomaly detected. \U0001f6d1",
+                            className="alert-heading",
+                        ),
+                        html.P("Choose to review it now or later."),
+                        html.Div(
+                            [
+                                dbc.Button("Dismis", id="dismis", className="ms-auto"),
+                                dbc.Button(
+                                    "Go to anomaly",
+                                    id="goTo",
+                                    className="ms-auto",
+                                    n_clicks=0,
+                                    href="/anomalies",
+                                ),
+                            ]
+                        ),
+                    ],
+                    id="alertMsg",
+                    is_open=False,  # Not sure if this line should be here.
+                ),
+                dcc.Interval(id="interval-component", interval=1 * 5000, n_intervals=0),
                 html.Div(
                     children=[
                         html.H2("SYSTEMATIC", className="FontLogo", id="Logo"),
                         ##The modal button is only for showing a pop up and the callback associated with a pop up.
                         # It should be deleted at some point.
-                        dbc.Button("Modal", color="primary", id="ModalBTN"),
                         html.Div(
                             html.H5(
                                 "Anomaly Detector",
                                 className="FontMain FontWhite SideElement",
                             )
-                        ),
-                        ##The modal is the popup alerting the users of new anomalies. So far we believe that
-                        # the actual location of the modal doesn't matter, as it always pops up in the same place.
-                        dbc.Modal(
-                            [
-                                dbc.ModalHeader(dbc.ModalTitle("Header")),
-                                dbc.ModalBody("A small modal."),
-                            ],
-                            id="modal-sm",
-                            size="sm",
-                            is_open=False,
                         ),
                     ]
                 ),
@@ -81,17 +104,29 @@ app.layout = html.Div(
 )
 
 
-def toggle_modal(n1, is_open):
-    if n1:
+# Callback that toggles the alert of new anomalies.
+@app.callback(
+    Output("alertMsg", "is_open"),
+    Input("interval-component", "n_intervals"),
+    Input("goTo", "n_clicks"),
+    Input("dismis", "n_clicks"),
+    State("alertMsg", "is_open"),
+)
+def toggle_alert(n1, n2, n3, is_open):
+    triggered_id = ctx.triggered_id
+    if triggered_id == "interval-component":
+        return check_for_new_anomalies(is_open)
+    else:
         return not is_open
+
+
+def check_for_new_anomalies(is_open):
+    # isFlagged = requests.get(check_flag).json()  # Calls checkFlag in Controller
+    isFlagged = requests.get("http://localhost:8002/check_flag")
+    if isFlagged:
+        return True
     return is_open
 
-
-app.callback(
-    Output("modal-sm", "is_open"),
-    Input("ModalBTN", "n_clicks"),
-    State("modal-sm", "is_open"),
-)(toggle_modal)
 
 # Debug true allows for hot reloading while writing code.
 if __name__ == "__main__":
