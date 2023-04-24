@@ -140,7 +140,7 @@ def serve_layout():
             # This Div includes the entire card (Navbar + Datatable).
             html.Div(
                 children=[
-                    # Nav bar, includes icon, three dropdown menu and a search bare.
+                    # Nav bar that includes an icon, three dropdown menu items, and a search bar.
                     html.Div(
                         children=[
                             html.I(
@@ -222,7 +222,7 @@ def serve_layout():
                                 id="dropdownmenu_status",
                                 style={"margin-right": "8px"},
                             ),
-                            # Searchbar currently has not functionality. This can easily be done with callbacks.
+                            # Searchbar currently has no functionality. This can easily be implemented with callbacks.
                             dbc.Input(
                                 id="input",
                                 className="bi bi-search fa-2x cardLine",
@@ -237,7 +237,7 @@ def serve_layout():
                         ],
                         style={"margin": "10px 10px 10px 10px"},
                     ),
-                    # Anomilies datatable, includes styling of the table/cells.
+                    # Anomalies datatable, includes styling of the table/cells.
                     dash_table.DataTable(
                         id="InboxTable",
                         columns=[{"name": i, "id": i} for i in actualDataDF.columns],
@@ -332,12 +332,12 @@ layout = serve_layout
     [State("InboxTable", "derived_viewport_data"), State("modal", "is_open")],
 )
 
-# This is the "method" that handles what pressing on the ... does.
-# It iintially checks if the user has clicked on a cell in the dataframe,
-# and in that case whether or not that cell is a ... cell
-# If it is a ... cell it opens the popup and allow the user to choose desired outcome
-# It uses api call it update the database with desired data
-# n and ok is unused but need to "burn" the data
+# This is the "method" that handles what pressing on the '...' button does.
+# It intially checks if the user has clicked on a cell in the dataframe,
+# and in that case whether or not that cell is a '...' cell
+# If it is a '...' cell it opens the popup and allows the user to choose the desired outcome
+# It uses an api call to update the database with the desired data
+# 'n' and 'ok' is unused but needed to "burn" the data
 def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
     if active_cell:
         row = active_cell["row"]
@@ -402,7 +402,7 @@ def adjust_table(value, n):
         return getDataDF().to_dict(orient="records")
 
 
-# This method gets and create/recreate the dataframe with data from the database.
+# This method gets and creates/recreates the dataframe with data from the database.
 def getDataDF():
     data = requests.get("http://localhost:8002/anomalies/get_anomaly_list").json()
     jsonData = json.dumps(data)
