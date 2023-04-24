@@ -7,7 +7,7 @@ This repository contains three components.
 ### A postgres database
 The database is used as a backend for storing log messages for the data generator
 ### A data generator REST service
-The REST services provides log messages upon make a regquest.
+The REST services provides log messages upon make a request.
 ### A REST endpoint for the anomaly detection model
 The REST endpoint for anomaly detection takes a log message as input and predicts if the message is an anomaly. Optinally a threshold for anomalies can be provided.
 ## Running the code
