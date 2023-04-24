@@ -7,15 +7,8 @@ from plotly.graph_objs import *
 import requests
 from pydantic import BaseSettings
 
-# The app.py page does not actually contain the pages that are being loaded, it is more so a container
-# for pages. It only contains the sidebar (containing buttons to navigate) and a page_container.
-# The page container then loads the actual pages from the pages directory.
-
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True)
-
 # class Settings(BaseSettings):
 #    controller: str
-
 
 # settings = Settings()
 
@@ -23,36 +16,15 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True
 
 # check_flag = f"{controller}/checkFlag"
 
+##The app.py page does not actually contain the pages that are being loaded, it is more so a container
+#for pages. It only contains the sidebar (containing buttons to navigate) and a page_container.
+#The page container then loads the actual pages from the pages directory.
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], use_pages=True)
 
-# Layout starts here
-app.layout = html.Div(
-    children=[
-        html.Div(
-            id="Sidebar",
-            children=[
-                html.Div(
-                    children=[
-                        html.H2("Systematic"),
-                    ]
-                ),
-                html.Div(
-                    [
-                        html.Div(
-                            dbc.Button(
-                                f"{page['name']}",
-                                color="secondary",
-                                class_name="SideBTN",
-                                href=page["relative_path"],
-                            ),
-                            style={"margin-top": "5vh", "margin-left": "2%"},
-                        )
-                        for page in dash.page_registry.values()
-                    ]
-                ),
-            ],
-            style={"background-color": "#e0e0d1", "width": "20vw", "height": "160vh"},
-        ),
-        html.Div(id="Main-panel", children=[dash.page_container]),
+
+app.layout = html.Div(children=[ 
+
+    html.Div(id="Sidebar",children=[
         dbc.Alert(
             [
                 html.H4("New anomaly detected. \U0001f6d1", className="alert-heading"),
@@ -74,10 +46,29 @@ app.layout = html.Div(
             is_open=False,  # Not sure if this line should be here.
         ),
         dcc.Interval(id="interval-component", interval=1 * 5000, n_intervals=0),
-    ],
-    style={"display": "flex", "width": "100vw"},
-)
+        html.Div(children=[
+            html.H2("SYSTEMATIC",className="FontLogo",id="Logo"),
 
+            html.Div(
+                html.H5("Anomaly Detector", className="FontMain FontWhite SideElement")
+            ),
+            
+            
+            ]),
+        html.Div(children=[
+            html.Div(
+                dbc.Button(f" {page['name']}", color="secondary",class_name="SideBTN SideElement bi bi-kanban",href=page["relative_path"]) if "Dashboard" in f" {page['name']}"
+                else dbc.Button(f" {page['name']}", color="secondary",class_name="SideBTN SideElement bi bi-exclamation-circle",href=page["relative_path"]),
+                style={"margin-top" : "5vh","margin-left" : "2%","font-weight" : "500"},
+            )
+            for page in dash.page_registry.values()
+        ]
+    ),
+
+    ]),
+
+    ])], style={"display":"flex","width" : "100vw"}
+    )
 
 # Callback that toggles the alert of new anomalies.
 @app.callback(
@@ -93,7 +84,6 @@ def toggle_alert(n1, n2, n3, is_open):
         return check_for_new_anomalies(is_open)
     else:
         return not is_open
-
 
 def check_for_new_anomalies(is_open):
     # isFlagged = requests.get(check_flag).json()  # Calls checkFlag in Controller

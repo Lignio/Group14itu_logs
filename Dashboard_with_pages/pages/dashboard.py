@@ -10,7 +10,11 @@ from plotly.graph_objs import *
 from pages.testdata import genLists
 
 # Separate pages need to be registered like this to show up in the page container in app.py
-dash.register_page(__name__)
+dash.register_page(__name__,path='/')
+
+
+# jsonLst = requests.get("http://localhost:8002/getAnomalyList", params = {"threshold":0.02})
+#dataList = jsonLst.json()
 
 dataList = [["A", 1], ["B", 2], ["C", 3]]
 anomalyScoreList = []
@@ -34,11 +38,11 @@ def countvalues():
 
 
 lst1, lst2 = genLists()
-
+    
 # The figures are currently just populated with test data. The figures are created
 # with the plotly package, so all documentation is via plotly.
 ScatterPlotFig = px.scatter(
-    x=lst1, y=lst2, title="Scatter plot of name lengths"
+    x=lst1, y=lst2, title="" #Title is blank
 ).update_layout(
     xaxis_title="Name length",
     yaxis_title="Name count",
@@ -47,169 +51,187 @@ ScatterPlotFig = px.scatter(
 PieChartFig = px.pie(
     values=countvalues(),
     names=["0.02 - 0.024", "0.024 - 0.026", ">0.026"],
-    title="Piechart for data",
+    title="", #Title is blank
 ).update_layout(margin=dict(l=20, r=20, t=30, b=20))
 
 testDf = pd.read_csv("Dashboard_with_pages/TestCSVLg.csv", delimiter=";")
 
 # Layout = html.Div defines the out container of the whole page.
 # "children =[]" is needed when more than 1 html element is present within the container.
-layout = html.Div(
-    children=[
+layout = html.Div(children=[
+
+        html.Div(id="Main-panel", children=[
+            html.Div(
+                #Dashboard title
+                html.H1("Anomaly Dashboard", className="FontBold"),
+                id="TitleDIV"
+        ),
         html.Div(
-            id="Main-panel",
-            children=[
-                html.Div(html.H1("Log anomaly dashboard"), id="TitleDIV"),
-                html.Div(
-                    # This breadcrumb is simply hardcoded for now. Should probably be fixed
-                    html.P("Homepage / page / page")
-                ),
-                html.Div(
-                    children=[
-                        # The datepicker is taken from the DCC page, and it's functionality is defined
-                        # in the callback in the bottom.
-                        dcc.DatePickerRange(
-                            id="my-date-picker-range",
-                            min_date_allowed=date(1995, 8, 5),
-                            max_date_allowed=date(2017, 9, 19),
-                            initial_visible_month=date(2017, 8, 5),
-                            end_date=date(2017, 8, 25),
-                        ),
-                        html.Div(id="output-container-date-picker-range", style={}),
-                    ]
-                ),
-                html.Div(
-                    children=[
-                        # The three boxes on the page are currently hardcoded with values. These should of course
-                        # be updated with the correct data going forward. Should be pretty easily done
-                        # via dcc callbacks.
-                        html.Div(
-                            children=[
-                                html.Div(
-                                    children=[
-                                        html.H3(
-                                            "Anomalies", style={"margin-left": "20px"}
-                                        ),
-                                        html.H1(
-                                            len(lst1), style={"margin-left": "20px"}
-                                        ),
-                                        html.H2("00%", style={"margin-left": "20px"}),
-                                    ],
-                                    style={
-                                        "margin": "15px",
-                                        "background-color": "#e0e0d1",
-                                        "height": "30vh",
-                                        "width": "25%",
-                                        "outline-color": "#b7b795",
-                                        "outline-style": "solid",
-                                        "outline-width": "3px",
-                                    },
-                                ),
-                                html.Div(
-                                    children=[
-                                        html.H3("Logs", style={"margin-left": "20px"}),
-                                        html.H1("0", style={"margin-left": "20px"}),
-                                        html.H2("00%", style={"margin-left": "20px"}),
-                                    ],
-                                    style={
-                                        "margin": "15px",
-                                        "background-color": "#e0e0d1",
-                                        "height": "30vh",
-                                        "width": "25%",
-                                        "outline-color": "#b7b795",
-                                        "outline-style": "solid",
-                                        "outline-width": "3px",
-                                    },
-                                ),
-                                html.Div(
-                                    children=[
-                                        html.H5(
-                                            "Anomaly Inbox",
-                                            style={"margin-left": "20px"},
-                                        ),
-                                        dash_table.DataTable(
-                                            testDf.to_dict("records"),
-                                            id="InboxTable",
-                                            columns=[
-                                                {"name": i, "id": i}
-                                                for i in testDf.columns
-                                            ],
-                                            editable=True,
-                                            sort_action="native",
-                                            sort_mode="multi",
-                                            style_table={
-                                                "overflow": "auto",
-                                                "height": "30vh",
-                                                "marginBottom": "20px",
-                                            },
-                                            style_header={
-                                                "backgroundColor": "#b3b3b3",
-                                                "fontWeight": "bold",
-                                            },
-                                        ),
-                                    ],
-                                    style={
-                                        "margin": "15px",
-                                        "background-color": "#e0e0d1",
-                                        "height": "8%",
-                                        "width": "40%",
-                                        "outline-color": "#b7b795",
-                                        "outline-style": "solid",
-                                        "outline-width": "3px",
-                                    },
-                                ),
-                            ],
-                            style={"display": "flex", "justify-content": "center"},
-                            className="row",
-                        ),
-                    ]
-                ),
-                html.Div(
-                    html.Div(
-                        children=[
-                            # Both graphs on the page are set here. Dash has the dcc.Graph component which takes
-                            # a plotly figure as it's figure parameter. The style of it only defines
-                            # the container containing the figure. All customization of the actual graph is done
-                            # when defining the actual plotly figures.
-                            dcc.Graph(
-                                figure=ScatterPlotFig,
-                                style={"width": "50vw", "height": "30vw"},
-                            ),
-                            dcc.Graph(
-                                figure=PieChartFig,
-                                style={"width": "30vw", "height": "30vw"},
-                            ),
-                        ],
-                        style={"display": "flex", "justify-content": "center"},
-                        className="row",
+            #This is the breadcrumb, made using Boostrap.
+            #The current href's lead nowhere, but can be easily changed to do so.
+            html.Nav(
+                html.Ol(className="breadcrumb", children=[
+                    html.Li(className="breadcrumb-item", children=[
+                        html.A("Home", href="./home.py", style={"text-decoration":"none", "color":"#6c757d"})
+                    ]),
+                    html.Li(className="breadcrumb-item", children=[
+                        html.A("Anomaly Detector", href="", style={"text-decoration":"none", "color":"#6c757d"})
+                    ]),
+                    html.Li("Dashboard", className="breadcrumb-item active FontBold", style={"color":"black"})
+                ])
+            )
+        ),
+        # Dropdown menu - each of the items have been given an id. This is used for callback.
+        # Label is the text being shown on the Dropdown Menu
+        # ClassName/Style doesn't work. Instead toggle_style/toggleClassName is used.
+        html.Div(children=[
+            dbc.DropdownMenu(
+                label=" Today", 
+                toggle_style={"background":"white", "color":"black"}, 
+                toggleClassName="border-white DropShadow bi bi-calendar-day",
+                direction="down",
+                children=[
+                dbc.DropdownMenuItem("All time", id="all_time_option"),
+                dbc.DropdownMenuItem("Today", id="today_option"),
+                dbc.DropdownMenuItem("Yesterday", id="yesterday_option" ),
+                dbc.DropdownMenuItem("Last two days", id="last_two_days_option"),
+                dbc.DropdownMenuItem("Last 7 days", id="last_7_days_option"),
+                dbc.DropdownMenuItem("This month", id="this_month_option")
+
+            ], className="", id="dropdownmenu",style={"margin-bottom":"20px"}),
+        ]),
+        html.Div(children=[
+            #The three boxes on the page are currently hardcoded with values. These should of course
+            #be updated with the correct data going forward. Should be pretty easily done
+            #via dcc callbacks.
+            html.Div(children=[
+                #Anomalies box, shows number of anomalies.
+                html.Div(children=[
+                    html.Div(children=[
+                        html.I(className="bi bi-exclamation-circle fa-2x cardText cardLine FontBold IconBold", style={"float":"left"}),
+                        #This is the three vertical dots. It is commented out since it has no functionality.
+                        #It should not be deleted!
+                        #html.I(className="bi bi-three-dots-vertical fa-2x cardText cardLine FontBold", style={"float":"right"})
+                        ]
                     ),
+                        html.H3("Anomalies", className="cardText card-title cardLine FontBold", style={"font-size":"20px"}),
+                    html.Div(style={"padding-top":"7px"}, children=[
+                        html.H1(len(lst1), className="cardText card-subtitle cardLine FontBold", style={"float":"left","padding-top":"12px","font-size":"45px", "color":"#1c1952"}),
+                        html.Div(children=[
+                            html.H2(" 00%", className="GreenCard bi bi-graph-up cardText card-subtitle cardLine FontBold IconBold", style={"float":"right","margin-top":"35px", "font-size":"20px", "padding":"5px 10px 5px"})
+                        ]),
+                        
+                    ])],        
+                    style={"margin":"5px","background-color":"#ffffff","height":"37vh","width":"24%","border":"none", "margin-right":"15px"},
+                    className="card rounded DropShadow"
+                ),
+                #False-Positives box, shows number of False-Positives.
+                html.Div(children=[
+                    html.Div(children=[
+                        html.I(className="bi bi-exclamation-triangle fa-2x cardText cardLine FontBold IconBold", style={"float":"left"}),
+                        #This is the three vertical dots. It is commented out since it has no functionality.
+                        #It should not be deleted!
+                        #html.I(className="bi bi-three-dots-vertical fa-2x cardText cardLine FontBold", style={"float":"right"})
+                        ]
+                    ),
+                        html.H3("False-Positives", className="cardText card-title cardLine FontBold", style={"font-size":"20px"}),
+                    html.Div(style={"padding-top":"7px"}, children=[
+                        html.H1(len(lst1), className="cardText card-subtitle cardLine FontBold", style={"float":"left","padding-top":"12px","font-size":"45px", "color":"#1c1952"}),
+                        html.Div(children=[
+                            html.H2(" 00%", className="RedCard bi bi-graph-up cardText card-subtitle cardLine FontBold IconBold", style={"float":"right","margin-top":"35px", "font-size":"20px", "padding":"5px 10px 5px"})
+                        ]),
+
+                    ])],        
+                    style={"margin":"5px","background-color":"#ffffff","height":"37vh","width":"24%","border":"none","margin-right":"37px"},
+                    className="card DropShadow"
+                ),
+                #Anomaly Inbox - It is made using a DataTable. It has been populated with test data. This should
+                #be changed at a later time.
+                html.Div(children=[
+                    html.Div(children=[
+                    html.H5("Anomaly Inbox", className="cardText cardLine card-title FontBold",style={"margin-top": "10px", "float":"left"}),
+                    html.I(className="bi bi-exclamation-circle fa-1x cardLine", style={"float":"right","margin-right":"5px","margin-top":"3px", "font-size":"25px"})]),
+                    dash_table.DataTable(
+                        testDf.to_dict('records'),
+                        id="InboxTable",
+                        columns=[{"name": i, "id": i} for i in testDf.columns],
+                        editable=True,
+                        sort_action="native",
+                        sort_mode='multi',
+                        style_table={
+                        'overflow': 'auto',
+                        'height' : '37vh',
+                        'marginBottom' : '20px'
+                        },
+                        style_header={
+                        'background': '#141446',
+                        'color' : 'white',
+                        'fontWeight': 'bold'
+                        })
+                    ],
+                    # This is styling for the Anomaly Inbox
+                    style={"margin":"5px","background-color":"#e0e0d1","height":"50vh","width":"40%","border":"none","margin-top":"-65px"},
+                     className="card bg-white rounded DropShadow"
+                ),
+            
+            ],style={"display": "flex","margin-left":"-5px"},className="row"),
+        ]),
+
+        html.Div(
+
+            html.Div(children=[
+
+                #Both graphs on the page are set here. Dash has the dcc.Graph component which takes
+                #a plotly figure as it's figure parameter. The style of it only defines
+                #the container containing the figure. All customization of the actual graph is done
+                #when defining the actual plotly figures.
+                html.Div(children=[
+                    html.H5("Anomalies Over Time", className="cardText card-title FontBold", style={"margin-left":"10px", "margin-top":"10px"}),
+                    dcc.Graph(
+                    
+                    figure=ScatterPlotFig, className="",
+                    style={"width":"40vw","height":"20vw","padding":"10px 10px 10px 10px"}
                 )
-                # Style customization for the whole page container:
-            ],
-            style={"width": "85vw", "margin-left": "20px"},
+                ], className="card border-0 DropShadow", style={"margin-right":"35px"})
+                ,
+                html.Div(children=[
+                    html.H5("Severity Percentage", className="cardText card-title FontBold", style={"margin-left":"10px", "margin-top":"10px"}),
+                    dcc.Graph(
+                    figure = PieChartFig, className="",
+                    style={"width" : "32vw","height" : "20vw", "padding":"10px 10px 10px 10px"}
+                )
+                ], className="card border-0 DropShadow")
+                
+
+            ],style={"display": "flex"  ,"padding-top":"30px","padding-bottom":"20px"}),
         )
-    ],
-    style={"display": "flex", "width": "80vw"},
-)
+
+        #Style customization for the whole page container:
+],style={"width" : "85vw", "margin-left":"30px"})], style={"display":"flex","width" : "80vw", "background-color":"#f0f3f6","padding-top":"20px"})
 
 
 # Callbacks define the functionality of the dashboard.
+# Callback for dropdownmenu. The method changes the label of the dropdown menu.
 @callback(
-    Output("output-container-date-picker-range", "children"),
-    Input("my-date-picker-range", "start_date"),
-    Input("my-date-picker-range", "end_date"),
-)
-def update_output(start_date, end_date):
-    string_prefix = "You have selected: "
-    if start_date is not None:
-        start_date_object = date.fromisoformat(start_date)
-        start_date_string = start_date_object.strftime("%B %d, %Y")
-        string_prefix = string_prefix + "Start Date: " + start_date_string + " | "
-    if end_date is not None:
-        end_date_object = date.fromisoformat(end_date)
-        end_date_string = end_date_object.strftime("%B %d, %Y")
-        string_prefix = string_prefix + "End Date: " + end_date_string
-    if len(string_prefix) == len("You have selected: "):
-        return "Select a date to see it displayed here"
-    else:
-        return string_prefix
+    Output("dropdownmenu", "label"),
+    [Input("all_time_option", "n_clicks"), Input("today_option", "n_clicks"),
+     Input("yesterday_option", "n_clicks"), Input("last_two_days_option", "n_clicks"),
+     Input("last_7_days_option", "n_clicks"), Input("this_month_option", "n_clicks")])
+def update_dropdownmenu_label(n1,n2,n3,n4,n5,n6):
+    #Maps the ids of the dropdown menu to their text
+    #and changes the label of the dropdownmenu.
+    id_lookup = {"all_time_option":" All time", 
+                 "today_option":" Today",
+                 "yesterday_option":" Yesterday",
+                 "last_two_days_option":" Last Two Days",
+                 "last_7_days_option":" Last 7 Days",
+                 "this_month_option":" This month"}
+    
+    ctx = dash.callback_context
+
+    #This gets the id of the button that triggered the callback
+    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    #If a button hasn't been clicked, it defaults to today. (Everytime you load the website)
+    if button_id == "":
+        return " Today"
+    return id_lookup[button_id]

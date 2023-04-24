@@ -16,7 +16,6 @@ originalDF["Date"] = pd.to_datetime(
     originalDF["Date"], format="%d/%m/%Y", dayfirst=True
 )
 
-
 # Appends the ... button to the dataframe containing the data from the database
 # This is currently using data from the  TestCSVLg file.
 buttonList = []
@@ -25,13 +24,28 @@ for i in originalDF.index:
 
 originalDF["..."] = buttonList
 
-layout = html.Div(
-    children=[
-        html.Div(html.H1("Anomalies"), id="TitleDIV"),
-        html.Div(
-            # This breadcrumb is simply hardcoded for now. Should probably be fixed
-            html.P("Homepage / page / page")
+layout = html.Div(children=[
+    html.Div(
+            #Anomilies page title
+            html.H1("Anomalies", className="FontBold"),
+            id="TitleDIV"
         ),
+        html.Div(
+            #This is the breadcrumb, made using Boostrap.
+            #The current href's lead nowhere, but can be easily changed to do so.
+            html.Nav(
+                html.Ol(className="breadcrumb", children=[
+                    html.Li(className="breadcrumb-item", children=[
+                        html.A("Home", href="./home.py", style={"text-decoration":"none", "color":"#6c757d"})
+                    ]),
+                    html.Li(className="breadcrumb-item", children=[
+                        html.A("Anomaly Detector", href="", style={"text-decoration":"none", "color":"#6c757d"})
+                    ]),
+                    html.Li("Anomalies", className="breadcrumb-item active FontBold", style={"color":"black"})
+                ])
+            )
+        ),
+        #Dropdown menu
         html.Div(
             children=[
                 dcc.Dropdown(
@@ -45,6 +59,7 @@ layout = html.Div(
                     ],
                     "Today",
                     id="interval_picker_dropdown",
+                    style={"width":"10vw"}
                 ),
             ]
         ),
@@ -87,10 +102,48 @@ layout = html.Div(
                 ),
             ]
         ),
-        # This is the div containing the anomalies data
-        html.Div(
-            children=[
-                html.H5("Anomalies", style={"margin-top": "20px"}),
+        # This Div includes the entire card (Navbar + Datatable).
+        html.Div(children=[
+                    #Nav bar, includes icon, three dropdown menu and a search bare.
+                    html.Div(children=[
+                        html.I(className="bi bi-filter fa-2x cardLine IconBold", style={"float":"left", "margin-left":"5px","margin-right":"15px","margin-top":"-5px"}),
+                        dbc.DropdownMenu(
+                            label="Status", 
+                            toggle_style={"background":"#f8f8f8", "color":"black"}, 
+                            toggleClassName="border-white",
+                            direction="down",
+                            children=[
+                                dbc.DropdownMenuItem("Status 1", id="status_one_option"),
+                                dbc.DropdownMenuItem("Status 2", id="status_two_option"),
+                                dbc.DropdownMenuItem("Status 3", id="status_three_option" )
+                                ], className="cardLine", id="dropdownmenu_status",style={"margin-right":"8px"}),
+                        dbc.DropdownMenu(
+                            label="Severity", 
+                            toggle_style={"background":"#f8f8f8", "color":"black","border":"#f8f8f8"}, 
+                            toggleClassName="",
+                            direction="down",
+                            children=[
+                                dbc.DropdownMenuItem("Severity 1", id="severity_one_option"),
+                                dbc.DropdownMenuItem("Severity 2", id="severity_two_option"),
+                                dbc.DropdownMenuItem("Severity 3", id="severity_three_option" )
+                                ], className="cardLine", id="dropdownmenu_status",style={"margin-right":"8px"}),
+                        dbc.DropdownMenu(
+                            label=" Date detected", 
+                            toggle_style={"background":"#f8f8f8", "color":"black"}, 
+                            toggleClassName="border-white",
+                            direction="down",
+                            children=[
+                                dbc.DropdownMenuItem("Date 1", id="date_one_option"),
+                                dbc.DropdownMenuItem("Date 2", id="date_two_option"),
+                                dbc.DropdownMenuItem("Date 3", id="date_three_option" )
+                                ], className="cardLine", id="dropdownmenu_status",style={"margin-right":"8px"}),
+                            #Searchbar currently has not functionality. This can easily be done with callbacks.
+                            dbc.Input(id="input", className="bi bi-search fa-2x cardLine", placeholder="Search for an anomaly...", type="text",
+                                    style={"width":"25vw","float":"right","background":"#f8f8f8"})
+                        ,
+                        
+                    ], style={"margin":"10px 10px 10px 10px"}),
+                #Anomilies datatable
                 dash_table.DataTable(
                     id="InboxTable",
                     columns=[{"name": i, "id": i} for i in originalDF.columns],
@@ -99,26 +152,22 @@ layout = html.Div(
                     sort_mode="multi",
                     style_table={
                         "overflow": "auto",
-                        "height": "100%",
-                        "width": "100%",
+                        'padding' : '20px 20px 20px 20px',
+                        'height' : '70vh',
                         "marginBottom": "20px",
                     },
-                    style_header={"backgroundColor": "#b3b3b3", "fontWeight": "bold"},
+                    style_header={
+                        'background' : '#f8f8f8',
+                        'color' : 'black',
+                        'fontWeight': 'bold'},
                 ),
-            ],
-            style={
-                "margin": "15px",
-                "background-color": "#e0e0d1",
-                "height": "8%",
-                "width": "70vw",
-                "outline-color": "#b7b795",
-                "outline-style": "solid",
-                "outline-width": "3px",
-            },
+            ],className="card bg-white DropShadow",
+            style={"margin":"15px","height":"8%","width":"70vw","display" : "flex", "justify-content" : "center"}
         ),
     ],
-    style={"margin-left": "20px"},
-)
+    #Style customization for the whole page container:
+    style={"padding-left":"30px","padding-top":"20px","background-color":"#f0f3f6","width":"80vw"})
+    
 
 
 # This is the callback for the functionality that marks/unmarks false positives in the anomaly data.
@@ -150,7 +199,7 @@ def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
             print(value)
             return not is_open
         if "close" == ctx.triggered_id:
-            return (not is_open, value)
+            return not is_open
         elif col == "...":  # or whatever column you want
             return not is_open
 
