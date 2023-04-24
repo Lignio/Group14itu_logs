@@ -12,6 +12,7 @@ import requests
 from flask import request
 from pages.testdata import genLists
 from datetime import datetime, timedelta
+import time
 
 
 dash.register_page(__name__)
@@ -110,7 +111,7 @@ def serve_layout():
                                     ]
                                 ),
                             ),
-                            # This is the closing buttons for the popup - OK to confirm the chosen marking of an anomaly/cancel to cancel.
+                            # This is the buttons for the popup - OK to confirm the chosen marking of an anomaly/cancel to cancel.
                             dbc.ModalFooter(
                                 children=[
                                     html.A(
@@ -236,12 +237,13 @@ def serve_layout():
                         ],
                         style={"margin": "10px 10px 10px 10px"},
                     ),
-                    # Anomilies datatable
+                    # Anomilies datatable, includes styling of the table/cells.
                     dash_table.DataTable(
                         id="InboxTable",
                         columns=[{"name": i, "id": i} for i in actualDataDF.columns],
                         editable=False,
                         sort_action="native",
+                        sort_by=[{"column_id": "id", "direction": "asc"}],
                         sort_mode="multi",
                         style_table={
                             "overflow": "auto",
@@ -249,16 +251,49 @@ def serve_layout():
                             "height": "70vh",
                             "marginBottom": "20px",
                         },
+                        style_data_conditional=[
+                            {
+                                "if": {
+                                    "filter_query": '{false_positive} contains "true"',
+                                    "column_id": "false_positive",
+                                },
+                                "backgroundColor": "#86dd6b",
+                            },
+                            {
+                                "if": {
+                                    "filter_query": '{false_positive} contains "false"',
+                                    "column_id": "false_positive",
+                                },
+                                "backgroundColor": "#e37c8b",
+                            },
+                        ],
+                        style_header_conditional=[
+                            {
+                                "if": {"column_id": "log_message"},
+                                "textAlign": "left",
+                            }
+                        ],
                         style_header={
                             "background": "#f8f8f8",
                             "color": "black",
                             "fontWeight": "bold",
+                            "textAlign": "center",
                         },
+                        style_cell_conditional=[
+                            {"if": {"column_id": a}, "textAlign": "center"}
+                            for a in [
+                                "id",
+                                "log_time",
+                                "false_positive",
+                                "anomaly_score",
+                                "...",
+                            ]
+                        ],
                         style_data={
                             "whiteSpace": "normal",
                             "width": "100px",
-                            "textAlign": "left",
                         },
+                        style_cell={"textAlign": "left"},
                     ),
                 ],
                 className="card bg-white DropShadow",
@@ -345,21 +380,26 @@ def calculate_interval(value):
             return (today, pd.Timestamp(year=1999, month=1, day=1))
 
 
+# Method for updating dataframe
 # When an option is selected in the dropdown the table is updated to fit the filter
+# When the ok button is clicked we also update the table
 @callback(
     Output("InboxTable", component_property="data"),
-    Input("interval_picker_dropdown", "value"),
+    [Input("interval_picker_dropdown", "value"), Input("OK", "n_clicks")],
 )
-def adjust_table_to_interval(value):
-    actualDataDF = getDataDF()
-    interval = calculate_interval(value)
+def adjust_table(value, n):
+    time.sleep(0.1)
+    if value:
+        actualDataDF = getDataDF()
+        interval = calculate_interval(value)
 
-    copyDf = actualDataDF[
-        (actualDataDF["log_time"] <= interval[0])
-        & (actualDataDF["log_time"] >= interval[1])
-    ]
-
-    return copyDf.to_dict(orient="records")
+        copyDf = actualDataDF[
+            (actualDataDF["log_time"] <= interval[0])
+            & (actualDataDF["log_time"] >= interval[1])
+        ]
+        return copyDf.to_dict(orient="records")
+    elif n:
+        return getDataDF().to_dict(orient="records")
 
 
 # This method gets and create/recreate the dataframe with data from the database.
@@ -368,7 +408,7 @@ def getDataDF():
     jsonData = json.dumps(data)
     actualDataDF = pd.read_json(jsonData)
     actualDataDF = actualDataDF.reindex(
-        columns=["id", "log_message", "log_time", "anomaly_score", "false_positive"]
+        columns=["id", "log_message", "log_time", "false_positive", "anomaly_score"]
     )
     buttonList = []
     for i in actualDataDF.index:
