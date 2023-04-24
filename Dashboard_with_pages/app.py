@@ -6,7 +6,6 @@ from datetime import date
 import dash_bootstrap_components as dbc
 import random
 from plotly.graph_objs import *
-from keycloak import KeycloakOpenID
 import requests
 
 ##The app.py page does not actually contain the pages that are being loaded, it is more so a container
@@ -14,16 +13,6 @@ import requests
 #The page container then loads the actual pages from the pages directory.
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], use_pages=True)
 
-keycloak_openid = KeycloakOpenID(server_url="http://localhost:8080/",
-                                 client_id="myclient",
-                                 realm_name="dash",
-                                 client_secret_key="3eWiHilBFOVjBuFf6rshHqv0rn4aSSdz")
-
-print(keycloak_openid)
-
-token = keycloak_openid.token("testuser", "test")
-userinfo = keycloak_openid.userinfo(token['access_token'])
-print(userinfo)
 
 app.layout = html.Div(children=[ 
 
@@ -37,7 +26,8 @@ app.layout = html.Div(children=[
             #It should be deleted at some point.
             dbc.Button("Modal", color="primary",id="ModalBTN"),
             html.Div(
-                html.H5("Anomaly Detector", className="FontMain FontWhite SideElement")
+                html.H5("Anomaly Detector", className="FontMain FontWhite SideElement"),
+                
             ),
             ##The modal is the popup alerting the users of new anomalies. So far we believe that
             #the actual location of the modal doesn't matter, as it always pops up in the same place.
