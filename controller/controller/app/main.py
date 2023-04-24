@@ -57,7 +57,7 @@ def getAnomalyList(threshold: float = 0.02):
 logQueue = queue.Queue(1000)
 
 
-# Method for simlating getting constant steam of mesagges and inserting them into the queue
+# Method for simlating getting constant steam of messages and inserting them into the queue
 def simulateLogstream():
     while True:
         # Missing load balancing when queue is full
@@ -65,7 +65,7 @@ def simulateLogstream():
         logQueue.put(myLogmessage)  # Put blocks/waits when the queue is full
 
 
-# Method for analysing and handeling log messages in the queue.
+# Method for analysing and handling log messages in the queue.
 def simulateStreamAnalysis():
     while True:
         while logQueue.not_empty:
@@ -96,7 +96,7 @@ def get_anomaly_list():
     return data_loader.get_all_anomalies()
 
 
-# Endpoint for getting a log from the datagenerator, and the inserting into the db if it is an anomaly
+# Endpoint for getting a log from the datagenerator, and inserting into the db if it is an anomaly
 @app.post("/anomalies/post_anomaly", response_model=Anomaly)
 def post_anomaly():
     myLogmessage = requests.get(get_record)
@@ -130,7 +130,7 @@ def update_false_postive(uId: int, uFalse_Positive: bool):
     data_writer.change_false_positive(anomaly, uFalse_Positive)
 
 
-# Starts two threads, one simulation the log stream, the other simulating stream analysis
+# Starts two threads, one simulates the log stream, the other simulates stream analysis
 @app.get("/anomalies/start_stream")
 def start_stream():
     t = threading.Thread(target=simulateLogstream)
