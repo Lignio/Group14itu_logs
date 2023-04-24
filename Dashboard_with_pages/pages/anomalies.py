@@ -332,12 +332,12 @@ layout = serve_layout
     [State("InboxTable", "derived_viewport_data"), State("modal", "is_open")],
 )
 
-# This is the "method" that handles what pressing on the '...' button does.
+# This method handles what pressing on the '...' button does.
 # It intially checks if the user has clicked on a cell in the dataframe,
 # and in that case whether or not that cell is a '...' cell
-# If it is a '...' cell it opens the popup and allows the user to choose the desired outcome
+# If it is a '...' cell it opens a popup and allows the user to choose the desired outcome
 # It uses an api call to update the database with the desired data
-# 'n' and 'ok' is unused but needed to "burn" the data
+# 'n' and 'ok' are unused but needed due to callback syntax
 def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
     if active_cell:
         row = active_cell["row"]
