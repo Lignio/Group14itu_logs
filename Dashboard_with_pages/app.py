@@ -9,14 +9,13 @@ import dash_bootstrap_components as dbc
 import random
 from plotly.graph_objs import *
 import requests
-import keyCloakHandler
+#import keyCloakHandler
 
 ##The app.py page does not actually contain the pages that are being loaded, it is more so a container
 #for pages. It only contains the sidebar (containing buttons to navigate) and a page_container.
 #The page container then loads the actual pages from the pages directory.
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], use_pages=True)
 
-#keyCloakHandler.logoutUser(userauthtoken)
 
 app.layout = html.Div(children=[ 
 
@@ -101,9 +100,12 @@ def toggle_modal(n1, is_open):
     return is_open
 
 def getUserInfo():
-    info = keyCloakHandler.getUserInfo("jskoven","123")
-    username = info["preferred_username"]
-    return username
+    # Remove hashtags below to connect to keyCloak container.
+    #info = keyCloakHandler.getUserInfo("jskoven","123")
+    #username = info["preferred_username"]
+    #return username
+    return "username"
+    
 
 
 app.callback(
@@ -124,9 +126,11 @@ def setUsername(n_clicks, userN, pw, n_clicks2):
     if n_clicks != 0:
         ctx = dash.callback_context
         if "LoginBTN" == ctx.triggered_id:
-            info = keyCloakHandler.getUserInfo(userN,pw)
-            if info["preferred_username"] is not None and userN is not None and pw is not None:
-                return info["preferred_username"]
+            # Remove the hashtags below to create connection to keycloak container
+            #info = keyCloakHandler.getUserInfo(userN,pw)
+            #if info["preferred_username"] is not None and userN is not None and pw is not None:
+                #return info["preferred_username"]
+            return "tempusername"
         if "logoutBTN" == ctx.triggered_id:
             info = None
             return "Logged out"
