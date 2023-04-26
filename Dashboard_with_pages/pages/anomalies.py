@@ -1,4 +1,3 @@
-
 import json
 from dash import Dash, dcc, html, Input, Output, callback, dash_table, State, ctx
 import pandas as pd
@@ -14,7 +13,6 @@ import time
 
 
 dash.register_page(__name__)
-
 
 
 # Entire html is now moved into a serve_layout() method which allows for reloading data when refreshing the page.
@@ -239,7 +237,21 @@ def serve_layout():
                     # Anomalies datatable, includes styling of the table/cells.
                     dash_table.DataTable(
                         id="InboxTable",
-                        columns=[{"name": i, "id": i} for i in actualDataDF.columns],
+                        columns=[
+                            {
+                                "name": i,
+                                "id": i,
+                                "type": "numeric",
+                            }
+                            if i != "anomaly_score"
+                            else {
+                                "name": i,
+                                "id": i,
+                                "type": "numeric",
+                                "format": {"specifier": ".4f"},
+                            }
+                            for i in actualDataDF.columns
+                        ],
                         editable=False,
                         sort_action="native",
                         sort_by=[{"column_id": "id", "direction": "asc"}],
@@ -257,6 +269,10 @@ def serve_layout():
                                     "column_id": "false_positive",
                                 },
                                 "backgroundColor": "#86dd6b",
+                            },
+                            {
+                                "if": {"column_id": "anomaly_score"},
+                                "format": {"specifier": ".4f"},
                             },
                             {
                                 "if": {
