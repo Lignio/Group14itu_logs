@@ -7,12 +7,16 @@ import dash_bootstrap_components as dbc
 import random
 from plotly.graph_objs import *
 import requests
+import keyCloakHandler
 
 ##The app.py page does not actually contain the pages that are being loaded, it is more so a container
 #for pages. It only contains the sidebar (containing buttons to navigate) and a page_container.
 #The page container then loads the actual pages from the pages directory.
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], use_pages=True)
 
+userauthtoken = keyCloakHandler.getAuthTokenForUser("jskoven","123")
+
+#keyCloakHandler.logoutUser(userauthtoken)
 
 app.layout = html.Div(children=[ 
 
@@ -48,6 +52,7 @@ app.layout = html.Div(children=[
                 style={"margin-top" : "5vh","margin-left" : "2%","font-weight" : "500"},
             )
             for page in dash.page_registry.values()
+            
         ]
     ),
 
