@@ -25,6 +25,7 @@ def getDataDFSlim():
     return actualDataDF
 
 
+# Gets the dataframe but reduced to only contain id, log_message and anomaly_score
 def getDataDFInbox():
     data = getDataDFSlim()
     dataFrame = data.reindex(columns=["id", "log_message", "anomaly_score"])
@@ -32,6 +33,7 @@ def getDataDFInbox():
     return dataFrame
 
 
+# Creates and returns a list of all anomaly_scores in the dataframe
 def getAnomalyScoreList():
     anomalyScoreList = []
     for i in getDataDFSlim().anomaly_score:
@@ -39,6 +41,7 @@ def getAnomalyScoreList():
     return anomalyScoreList
 
 
+# Creates and returns a list of all false positives
 def getListOfFalsePostives():
     data = []
     for i in getDataDFSlim().false_positive:
@@ -47,6 +50,7 @@ def getListOfFalsePostives():
     return data
 
 
+# Counts and partitions the anomaly scores in the anomalyScore list into a list used for the piechart
 def countvalues():
     anomalyToPiechart = [0, 0, 0]
     anomalyScoreList = getAnomalyScoreList()
@@ -65,10 +69,13 @@ def countvalues():
 # "children =[]" is needed when more than 1 html element is present within the container.
 
 
+# Entire html is now moved into a serve_layout() method which allows for reloading data when refreshing the page
 def serve_layout():
+    # lists used for creating graphs
     lst1 = getDataDFSlim().id
     lst2 = getListOfFalsePostives()
 
+    # used for making the inbox table
     inboxDataFrame = getDataDFInbox()
     PieChartFig = px.pie(
         values=countvalues(),
@@ -293,8 +300,7 @@ def serve_layout():
                                         },
                                         className="card DropShadow",
                                     ),
-                                    # Anomaly Inbox - It is made using a DataTable. It has been populated with test data. This should
-                                    # be changed at a later time.
+                                    # Anomaly Inbox - It is made using a DataTable.
                                     html.Div(
                                         children=[
                                             html.Div(
@@ -326,6 +332,7 @@ def serve_layout():
                                                         "id": i,
                                                         "type": "numeric",
                                                     }
+                                                    # This allows us to limit decimals in anomaly_score (a_score)
                                                     if i != "a_score"
                                                     else {
                                                         "name": i,
@@ -353,6 +360,7 @@ def serve_layout():
                                                     "whiteSpace": "normal",
                                                     "width": "60px",
                                                 },
+                                                # Also used to limit decimals in anomaly_score (a_score)
                                                 style_data_conditional=[
                                                     {
                                                         "if": {"column_id": "a_score"},
