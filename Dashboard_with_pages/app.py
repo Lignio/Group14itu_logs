@@ -1,3 +1,5 @@
+from operator import is_
+from pydoc import classname
 from dash import Dash, dcc, html, Input, Output, State
 import dash
 import pandas as pd
@@ -14,17 +16,13 @@ import keyCloakHandler
 #The page container then loads the actual pages from the pages directory.
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], use_pages=True)
 
-userauthtoken = keyCloakHandler.getAuthTokenForUser("jskoven","123")
-
 #keyCloakHandler.logoutUser(userauthtoken)
 
 app.layout = html.Div(children=[ 
 
     html.Div(id="Sidebar",children=[
         html.Div(children=[
-            html.Div(id="hidden_div_for_redirect_callback"),
             html.H2("SYSTEMATIC",className="FontLogo",id="Logo"),
-            dbc.Button("Redirect", color="secondary", id="redirectBTN",href='http://localhost:8080/realms/dash/account/#/'),
 
             ##The modal button is only for showing a pop up and the callback associated with a pop up.
             #It should be deleted at some point.
@@ -55,7 +53,33 @@ app.layout = html.Div(children=[
             
         ]
         ),
-        dbc.Button(" Login", className="SideBTN SideElement bi bi-box-arrow-in-right", style={"vertical-align":"text-bottom"}),
+
+        # Tempoary login forms, shouldn't be here in the long run
+        dbc.FormFloating([
+            dbc.Input(placeholder="example@internet.com",id="userForm"),
+            dbc.Label("Email address"),
+        ],style={"width":"80%"},className="SideElement"),
+        dbc.FormFloating([
+            dbc.Input(type="password",placeholder="example@internet.com",id="passForm"),
+            dbc.Label("Password"),
+        ],style={"width":"80%"},className="SideElement"),
+        dbc.Button(" Login", className="SideBTN SideElement bi bi-box-arrow-in-right", style={"vertical-align":"text-bottom"},id="LoginBTN"),
+        # Fade component lets the card fade in when you're logged in, and is hidden when you're not initially
+        # logged in.
+        dbc.Fade(
+            dbc.Card(
+                dbc.CardBody([
+                    html.H5("Card title", className="card-title", id="UserNameCardTitle",style={"margin-left":"55px"}),
+                    
+                    dbc.Button("Log out", id="logoutBTN",className="SideBTN SideElement bi bi-box-arrow-in-right"),
+                    ]),
+                className="mb-3 SideElement",
+                style={"width":"70%","margin-top":"10px"}
+            ),
+        id="fade",
+        is_in=False,
+        appear=False,
+        )
         
 
     ]),
@@ -76,6 +100,10 @@ def toggle_modal(n1, is_open):
         return not is_open
     return is_open
 
+def getUserInfo():
+    info = keyCloakHandler.getUserInfo("jskoven","123")
+    username = info["preferred_username"]
+    return username
 
 
 app.callback(
@@ -84,6 +112,36 @@ app.callback(
     State("modal-sm", "is_open"),
 )(toggle_modal)
 
+@app.callback(
+    Output("UserNameCardTitle","children"),
+    Input("LoginBTN", "n_clicks"),
+    Input("userForm","value"),
+    Input("passForm","value"),
+    Input("logoutBTN","n_clicks"),
+    prevent_initial_call=True
+)
+def setUsername(n_clicks, userN, pw, n_clicks2):
+    if n_clicks != 0:
+        ctx = dash.callback_context
+        if "LoginBTN" == ctx.triggered_id:
+            info = keyCloakHandler.getUserInfo(userN,pw)
+            if info["preferred_username"] is not None and userN is not None and pw is not None:
+                return info["preferred_username"]
+        if "logoutBTN" == ctx.triggered_id:
+            return "Logged out"
+        
+
+
+@app.callback(
+    Output("fade", "is_in"),
+    [Input("LoginBTN", "n_clicks")],
+    [State("fade", "is_in")],   
+)
+def toggle_fade(n, is_in):
+    if not n:
+        # Button has never been clicked
+        return False
+    return True
 
 
 #Debug true allows for hot reloading while writing code.

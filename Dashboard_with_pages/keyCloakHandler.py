@@ -16,8 +16,11 @@ admin = KeycloakAdmin(server_url='http://localhost:8080/',
 # Gets authentication token for user, used to gain access to user information based on login info
 def getAuthTokenForUser(username, userPass):
     token = keycloak_openid.token(username, userPass)['access_token']
-    print(keycloak_openid.userinfo(token))
     return token
+
+def getUserInfo(username,userPass):
+    token = getAuthTokenForUser(username,userPass)
+    return keycloak_openid.userinfo(token)
 
 # Doesn't work yet, need to figure out how this works. 
 # Needs a refresh token to log out, which can be gotten like token is got above. Pypi site
