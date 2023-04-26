@@ -1,0 +1,11 @@
+FROM python:3.10
+
+ENV CONTROLLER http://controller:8002
+
+WORKDIR /app
+
+COPY ./Dashboard_with_pages .
+
+RUN pip install -e .
+
+CMD python app.py
