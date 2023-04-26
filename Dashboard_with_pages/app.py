@@ -1,3 +1,4 @@
+
 from dash import Dash, dcc, html, Input, Output, State, ctx
 import dash
 import pandas as pd
@@ -7,8 +8,9 @@ import dash_bootstrap_components as dbc
 import random
 from plotly.graph_objs import *
 import requests
+#import keyCloakHandler
+#from pydantic import BaseSettings
 
-from pydantic import BaseSettings
 
 # class Settings(BaseSettings):
 #    controller: str
@@ -73,6 +75,30 @@ app.layout = html.Div(
                         for page in dash.page_registry.values()
                     ]
                 ),
+                dbc.FormFloating([
+                    dbc.Input(placeholder="example@internet.com",id="userForm"),
+                    dbc.Label("Username"),
+                ],style={"width":"80%"},className="SideElement"),
+                dbc.FormFloating([
+                    dbc.Input(type="password",placeholder="example@internet.com",id="passForm"),
+                    dbc.Label("Password"),
+                ],style={"width":"80%"},className="SideElement"),
+                dbc.Button(" Login", className="SideBTN SideElement bi bi-box-arrow-in-right", style={"vertical-align":"text-bottom"},id="LoginBTN"),
+                # Fade component lets the card fade in when you're logged in, and is hidden when you're not initially
+                # logged in.
+                dbc.Fade(
+                    dbc.Card(
+                        dbc.CardBody([
+                            html.H5("Card title", className="card-title", id="UserNameCardTitle",style={"margin-left":"55px"}),
+                            dbc.Button("Log out", id="logoutBTN",className="SideBTN SideElement bi bi-box-arrow-in-right"),
+                        ]),
+                    className="mb-3 SideElement",
+                    style={"width":"70%","margin-top":"10px"}
+                    ),
+                id="fade",
+                is_in=False,
+                appear=False,
+            )
             ],
         ),
         html.Div(id="Main-panel", children=[dash.page_container]),
@@ -133,6 +159,51 @@ def check_for_new_anomalies(is_open):
     if isFlagged:
         return True
     return is_open
+
+
+def getUserInfo():
+    # Remove hashtags below to connect to keyCloak container.
+    #info = keyCloakHandler.getUserInfo("jskoven","123")
+    #username = info["preferred_username"]
+    #return username
+    return "username"
+    
+
+
+@app.callback(
+    Output("UserNameCardTitle","children"),
+    Input("LoginBTN", "n_clicks"),
+    Input("userForm","value"),
+    Input("passForm","value"),
+    Input("logoutBTN","n_clicks"),
+    prevent_initial_call=True
+)
+def setUsername(n_clicks, userN, pw, n_clicks2):
+    if n_clicks != 0:
+        ctx = dash.callback_context
+        if "LoginBTN" == ctx.triggered_id:
+            # Remove the hashtags below to create connection to keycloak container
+            #info = keyCloakHandler.getUserInfo(userN,pw)
+            #if info["preferred_username"] is not None and userN is not None and pw is not None:
+                #return info["preferred_username"]
+            return "tempusername"
+        if "logoutBTN" == ctx.triggered_id:
+            info = None
+            return "Logged out"
+        
+
+
+@app.callback(
+    Output("fade", "is_in"),
+    [Input("LoginBTN", "n_clicks")],
+    [State("fade", "is_in")],   
+)
+def toggle_fade(n, is_in):
+    if not n:
+        # Button has never been clicked
+        return False
+    return True
+
 
 
 # Debug true allows for hot reloading while writing code.
