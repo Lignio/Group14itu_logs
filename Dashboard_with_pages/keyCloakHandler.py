@@ -18,6 +18,12 @@ def getAuthTokenForUser(username, userPass):
     token = keycloak_openid.token(username, userPass)['access_token']
     return token
 
+def getRefreshTokenForUser(username, userPass):
+    token = keycloak_openid.token("jskoven", "123")
+    return keycloak_openid.refresh_token(token['refresh_token'])
+
+
+
 def getUserInfo(username,userPass):
     token = getAuthTokenForUser(username,userPass)
     return keycloak_openid.userinfo(token)
@@ -25,8 +31,9 @@ def getUserInfo(username,userPass):
 # Doesn't work yet, need to figure out how this works. 
 # Needs a refresh token to log out, which can be gotten like token is got above. Pypi site
 # Documents this quite well.
-def logoutUser(userAuthToken):
-    keycloak_openid.logout(userAuthToken)
+def logoutUser(username, userpass):
+    keycloak_openid.logout(getRefreshTokenForUser(username, userpass)
+)
 
 # Admin client is used to gain access to a users groups and roles. Is done with user_id, not username.
 # Example userID: 47c7a85c-0764-4a20-bbf6-ba7fe2860e26

@@ -57,7 +57,7 @@ app.layout = html.Div(children=[
         # Tempoary login forms, shouldn't be here in the long run
         dbc.FormFloating([
             dbc.Input(placeholder="example@internet.com",id="userForm"),
-            dbc.Label("Email address"),
+            dbc.Label("Username"),
         ],style={"width":"80%"},className="SideElement"),
         dbc.FormFloating([
             dbc.Input(type="password",placeholder="example@internet.com",id="passForm"),
@@ -128,6 +128,7 @@ def setUsername(n_clicks, userN, pw, n_clicks2):
             if info["preferred_username"] is not None and userN is not None and pw is not None:
                 return info["preferred_username"]
         if "logoutBTN" == ctx.triggered_id:
+            info = None
             return "Logged out"
         
 
