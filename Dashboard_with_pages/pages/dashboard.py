@@ -14,26 +14,6 @@ import json
 dash.register_page(__name__, path="/")
 
 
-# jsonLst = requests.get("http://localhost:8002/getAnomalyList", params = {"threshold":0.02})
-# dataList = jsonLst.json()
-
-
-# This method gets and creates/recreates the dataframe with data from the database.
-def getDataDF():
-    data = requests.get("http://localhost:8002/anomalies/get_anomaly_list").json()
-    jsonData = json.dumps(data)
-    actualDataDF = pd.read_json(jsonData)
-    actualDataDF = actualDataDF.reindex(
-        columns=["id", "log_message", "log_time", "false_positive", "anomaly_score"]
-    )
-    buttonList = []
-    for i in actualDataDF.index:
-        buttonList.append("...")
-    actualDataDF["..."] = buttonList
-    pd.options.display.width = 10
-    return actualDataDF
-
-
 # Gets the dataframe but without the extra colum of buttons
 def getDataDFSlim():
     data = requests.get("http://localhost:8002/anomalies/get_anomaly_list").json()
@@ -43,9 +23,6 @@ def getDataDFSlim():
         columns=["id", "log_message", "log_time", "false_positive", "anomaly_score"]
     )
     return actualDataDF
-
-
-# dataList = [["A", 1], ["B", 2], ["C", 3]]
 
 
 def getDataDFInbox():
@@ -93,7 +70,6 @@ def serve_layout():
     lst2 = getListOfFalsePostives()
 
     inboxDataFrame = getDataDFInbox()
-    dataFrame = getDataDFSlim()
     PieChartFig = px.pie(
         values=countvalues(),
         names=["0.02 - 0.024", "0.024 - 0.026", ">0.026"],
@@ -355,7 +331,7 @@ def serve_layout():
                                                         "name": i,
                                                         "id": i,
                                                         "type": "numeric",
-                                                        "format": {"specifier": ".5f"},
+                                                        "format": {"specifier": ".4f"},
                                                     }
                                                     for i in inboxDataFrame.columns
                                                 ],
@@ -380,7 +356,7 @@ def serve_layout():
                                                 style_data_conditional=[
                                                     {
                                                         "if": {"column_id": "a_score"},
-                                                        "format": {"specifier": ".5f"},
+                                                        "format": {"specifier": ".4f"},
                                                     }
                                                 ],
                                             ),
