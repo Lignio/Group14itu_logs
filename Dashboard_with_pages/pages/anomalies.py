@@ -7,7 +7,6 @@ import dash_bootstrap_components as dbc
 from plotly.graph_objs import *
 import requests
 from flask import request
-from pages.testdata import genLists
 from datetime import datetime, timedelta
 import time
 
