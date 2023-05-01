@@ -51,28 +51,6 @@ class Flag:
 
 anomalyFlag = Flag()
 
-
-# Function that calls the data-generator api for a list of the first 1000 logs and then calls the anomaly-detector api
-# to check which of those logs are a anomaly. It then returns a list of all anomalies and there anomaly-score.
-@app.get("/getAnomalyList")
-def getAnomalyList(threshold: float = 0.02):
-    myResult = []
-    # Retrives the list from the datagenerator
-    request = requests.get(get_LogList)
-    # Deserialize it from json
-    dataList = request.json()
-    for i in dataList:
-        response = requests.get(
-            get_prediction,
-            params={"log_message": i[0], "threshold": threshold},
-        )
-        answer = response.json()
-        anomalyScore = answer["anomaly_score"]
-        if anomalyScore > threshold:
-            myResult.append((i[0], anomalyScore))
-    return myResult
-
-
 # Queue with our log messages
 logQueue = queue.Queue(1000)
 
@@ -118,70 +96,9 @@ def checkFlag():
     return flag
 
 
-# Function to post an anomaly into db, by getting anomaly from stream and sending the parameters to data_generator, which handles the final insertion into Anomaly db table
-@app.post("/postAnomaly_stream")
-def postAnomaly():
-    while True:
-        while logQueue.not_empty:
-            myLogmessage = requests.get(get_record)
-            analysedMessage = requests.get(
-                get_prediction, params={"log_message": myLogmessage, "threshold": 0.02}
-            )
-            analysedMessage = analysedMessage.json()
-            if analysedMessage["anomaly_score"] > 0.02:
-                # Replace print with insertion into database
-                # requests.post('http://localhost:8000/anomalies/post_anomaly', params={"log_message":analysedMessage["log_message"], "anomaly_score":analysedMessage["anomaly_score"] })
-                # print(analysedMessage["log_message"])
-                return post_test_anomaly(
-                    analysedMessage["log_message"], analysedMessage["anomaly_score"]
-                )
-            return Anomaly(
-                log_time="10",
-                log_message=analysedMessage["log_message"],
-                anomaly_score=analysedMessage["anomaly_score"],
-            )
-
-
 @app.get("/anomalies/get_anomaly_list")
 def get_anomaly_list():
     return data_loader.get_all_anomalies()
-
-
-# Endpoint for forcing a custom anomaly into the db - for testing purposes
-# Note: this does not account for the anomaly threshold - this is purely for inserting ANYTHING into the database for testing
-@app.post("/anomalies/post_test_anomaly", response_model=Anomaly)
-def post_test_anomaly(log_message: str, anomaly_score: float):
-    dt = datetime.now()
-    dts = dt.strftime("%d/%m/%Y")
-
-    anomaly = Anomaly(
-        log_time=dts, log_message=log_message, anomaly_score=anomaly_score
-    )
-    new_post = Anomalies(**anomaly.dict())
-    data_writer.write_single_row_to_database(new_post)
-    return anomaly
-
-
-# Endpoint for forcing a custom anomaly with false positive as true into the db - for testing purposes
-@app.post("/anomalies/post_test_false_positive", response_model=false_positive_anomoly)
-def post_test_false_positive(log_message: str, anomaly_score: float):
-    dt = datetime.now()
-    dts = dt.strftime("%d/%m/%Y")
-
-    anomaly = false_positive_anomoly(
-        log_time=dts,
-        log_message=log_message,
-        anomaly_score=anomaly_score,
-        false_positive=True,
-    )
-    is_positive = compare_false_positive(
-        anomaly.log_message
-    )  # checks if anomoly is false positive
-    if is_positive == True:
-        return anomaly
-    new_post = Anomalies(**anomaly.dict())
-    data_writer.write_single_row_to_database(new_post)
-    return anomaly
 
 
 # Endpoint for getting a log from the datagenerator, and inserting into the db if it is an anomaly
@@ -218,6 +135,7 @@ def post_anomaly():
     return anomaly
 
 
+# Finds anomly with id uId in db and updates it to match uFalse_Positive
 @app.put("/anomalies/Update_false_positive")
 def update_false_postive(uId: int, uFalse_Positive: bool):
     anomaly = data_loader.get_Anomaly(uId)
@@ -225,8 +143,6 @@ def update_false_postive(uId: int, uFalse_Positive: bool):
 
 
 # Starts two threads, one simulates the log stream, the other simulates stream analysis
-
-
 @app.get("/anomalies/start_stream")
 def start_stream():
     t = threading.Thread(target=simulateLogstream)

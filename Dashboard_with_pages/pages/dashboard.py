@@ -4,10 +4,8 @@ import dash
 import plotly.express as px
 from datetime import date
 import dash_bootstrap_components as dbc
-import random
 import requests
 from plotly.graph_objs import *
-from pages.testdata import genLists
 import json
 
 # Separate pages need to be registered like this to show up in the page container in app.py
