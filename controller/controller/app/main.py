@@ -6,6 +6,8 @@ import requests
 import json
 import threading
 import queue
+import pika
+import logging
 
 from datetime import datetime
 
@@ -27,9 +29,27 @@ get_LogList = f"{data_generator}/logs/LogList"
 get_record = f"{data_generator}/logs/get_record"
 
 
+connection = pika.BlockingConnection(pika.ConnectionParameters("rmq", 5672))
+channel = connection.channel()
+
+queue = channel.queue_declare(queue="anomaly")
+queue_name = queue.method.queue
+
+channel.queue_bind(
+    exchange="datagenerator", queue=queue_name, routing_key="datagenerator.found"
+)
+
+
+def callback(ch, method, properties, body):
+    print()
+
+
+channel.basic_consume(queue=queue_name, auto_ack=True, on_message_callback=callback)
+
+channel.start_consuming()
+
+
 # class representing an anomaly.
-
-
 class Anomaly(BaseModel):
     log_time: str
     log_message: str
