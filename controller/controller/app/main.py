@@ -7,7 +7,6 @@ import json
 import threading
 import queue
 import pika
-import logging
 
 from datetime import datetime
 
@@ -28,7 +27,7 @@ get_prediction = f"{anomaly_detector}/logs/getPredict"
 get_LogList = f"{data_generator}/logs/LogList"
 get_record = f"{data_generator}/logs/get_record"
 
-
+# Connection for rabbitmq. Binds the queue to the 'datagenerator' exchange.
 connection = pika.BlockingConnection(pika.ConnectionParameters("rmq", 5672))
 channel = connection.channel()
 
@@ -40,20 +39,47 @@ channel.queue_bind(
 )
 
 
-def callback(ch, method, properties, body):
-    print()
-
-
-channel.basic_consume(queue=queue_name, auto_ack=True, on_message_callback=callback)
-
-channel.start_consuming()
-
-
 # class representing an anomaly.
 class Anomaly(BaseModel):
     log_time: str
     log_message: str
     anomaly_score: float
+
+
+# Callback to analyze received anomaly. The body consists of code from post_anomaly.
+def callback(ch, method, properties, body):
+    analysedMessage = requests.get(
+        get_prediction, params={"log_message": body, "threshold": 0.02}
+    )
+    analysedMessage = analysedMessage.json()
+
+    dt = datetime.now()
+    dts = dt.strftime("%d/%m/%Y")
+
+    anomaly = Anomaly(
+        log_time=dts,
+        log_message=analysedMessage["log_message"],
+        anomaly_score=analysedMessage["anomaly_score"],
+    )
+    if analysedMessage["anomaly_score"] > 0.02:
+        anomaly = Anomaly(
+            log_time=analysedMessage["log_time"],
+            log_message=analysedMessage["log_message"],
+            anomaly_score=analysedMessage["anomaly_score"],
+        )
+        is_positive = compare_false_positive(
+            analysedMessage.log_message
+        )  # checks if anomaly is a false positive
+        if is_positive == True:
+            return anomaly
+        new_post = Anomalies(**anomaly.dict())
+        data_writer.write_single_row_to_database(new_post)
+    return anomaly
+
+
+channel.basic_consume(queue=queue_name, auto_ack=True, on_message_callback=callback)
+
+channel.start_consuming()
 
 
 # test class for putting false positives into the db. only for testing purpose
@@ -146,7 +172,7 @@ def post_anomaly():
         )
         is_positive = compare_false_positive(
             analysedMessage.log_message
-        )  # checks if anomoly is false positive
+        )  # checks if anomaly is a false positive
         if is_positive == True:
             return anomaly
         # anomaly = Anomaly(log_time=analysedMessage["log_time"], log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])

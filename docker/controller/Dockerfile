@@ -15,6 +15,5 @@ COPY ./controller .
 RUN pip install -e .
 RUN pip install uvicorn
 RUN pip install pika
-RUN pip install logging
 
 CMD ["uvicorn", "controller.app.main:app", "--host", "0.0.0.0", "--port", "8002"]

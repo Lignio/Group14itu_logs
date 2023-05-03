@@ -32,11 +32,11 @@ connection = pika.BlockingConnection(pika.ConnectionParameters("rmq", 5672))
 channel = connection.channel()
 
 channel.exchange_declare(exchange="datagenerator", exchange_type="direct")
-logmessage = json.dumps(data_loader.get_log_message(random.choice(ids)).log_message)
 
 
 @app.get("/rabbitmqTest")
 def publish():
+    logmessage = json.dumps(data_loader.get_log_message(random.choice(ids)).log_message)
     channel.basic_publish(
         exchange="datagenerator", routing_key="datagenerator.found", body=logmessage
     )
