@@ -234,4 +234,4 @@ def toggle_fade(n, is_in):
 
 # Debug true allows for hot reloading while writing code.
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=8050)
