@@ -12,7 +12,6 @@ COPY ./data_generator .
 
 RUN pip install -e .
 RUN pip install uvicorn
+RUN pip install pika
 
 CMD ["uvicorn", "data_generator.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-
-

@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   data_generator:
-    build: 
+    build:
       context: ../
       dockerfile: ./docker/data_generator/Dockerfile
     environment:
@@ -12,6 +12,7 @@ services:
       - DATABASE_PASSWORD = "postgres"
     links:
       - postgresdb:db
+      - rabbitmq
     ports:
       - "8000:8000"
     depends_on:
@@ -45,9 +46,9 @@ services:
       timeout: 5s
       retries: 10
     restart: always
-    
+
   postgresdb:
-    build: 
+    build:
       context: ../
       dockerfile: ./docker/database/Dockerfile
     ports:
@@ -65,6 +66,10 @@ services:
     ports:
       - "8001:8001"
 
-
-
-   
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: 'rabbitmq'
+    hostname: 'rmq'
+    ports:
+      - 5672:5672
+      - 15672:15672

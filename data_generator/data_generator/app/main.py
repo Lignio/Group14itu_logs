@@ -1,4 +1,6 @@
 import random
+import pika
+import json
 
 from typing import Union
 from fastapi import FastAPI
@@ -23,12 +25,26 @@ if len(ids) == 0:
 class Anomaly(BaseModel):
     log_time: str
     log_message: str
-    anomaly_score: float 
+    anomaly_score: float
+
+
+@app.get("/rabbitmqTest")
+def publish():
+    connection = pika.BlockingConnection(pika.ConnectionParameters("rmq", 5672))
+    channel = connection.channel()
+
+    channel.exchange_declare(exchange="datagenerator", exchange_type="direct")
+    logmessage = json.dumps(data_loader.get_log_message(random.choice(ids)).log_message)
+
+    channel.basic_publish(
+        exchange="datagenerator", routing_key="datagenerator.found", body=logmessage
+    )
+    return "success"
+
 
 @app.get("/health")
 def health():
     return {"status": "ok"}
-
 
 
 @app.get("/logs/get_record")
@@ -41,7 +57,7 @@ def get_record():
 def get_logList():
     myResult = []
     for i in data_loader.get_all_records():
-        if (i.id < 1000):
+        if i.id < 1000:
             myResult.append((i.log_message, 0, False))
         else:
             break
