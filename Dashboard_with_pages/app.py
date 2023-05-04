@@ -19,7 +19,7 @@ settings = Settings()
 
 controller = settings.controller
 
-check_flag = f"{controller}/checkFlag"
+check_flag = f"{controller}/check_flag"
 
 ##The app.py page does not actually contain the pages that are being loaded, it is more so a container
 # for pages. It only contains the sidebar (containing buttons to navigate) and a page_container.
@@ -29,7 +29,7 @@ app = Dash(
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP],
     use_pages=True,
 )
-
+server = app.server
 
 app.layout = html.Div(
     children=[
@@ -233,5 +233,5 @@ def toggle_fade(n, is_in):
 
 
 # Debug true allows for hot reloading while writing code.
-if __name__ == "__main__":
-    app.run(debug=True, port=8050)
+# if __name__ == "__main__":
+#   app.run(debug=True, port=8050)
