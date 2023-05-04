@@ -6,6 +6,7 @@ COPY ./anomaly_detector .
 
 RUN pip install -e .
 RUN pip install uvicorn
+RUN pip install pika
 
 
 
