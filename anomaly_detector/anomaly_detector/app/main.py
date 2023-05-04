@@ -58,7 +58,10 @@ def callback(ch, method, properties, body):
     }
 
     output = json.dumps({"anomaly": anomaly})
-    requests.post("http://controller:8002/anomalies/post_anomaly", params={'anomaly':anomaly})
+    requests.post("http://controller:8002/anomalies/post_anomaly", params={
+        "log_message":analysedMessage,
+        "log_time":dts,
+        "anomaly_score":anomaly_score})
     return anomaly
 
 

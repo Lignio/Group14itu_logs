@@ -102,11 +102,15 @@ def get_anomaly_list():
 
 # Endpoint for getting a log from the datagenerator, and inserting into the db if it is an anomaly
 @app.post("/anomalies/post_anomaly")
-def post_anomaly(anomaly:dict):
-    analysedMessage = anomaly
+def post_anomaly(log_message:str, log_time:str, anomaly_score:float):
+    anomaly = Anomaly(
+        log_message= log_message,
+        log_time=log_time,
+        anomaly_score=anomaly_score
+    )
 
     is_positive = compare_false_positive(
-        analysedMessage.log_message
+        anomaly.log_message
     )  # checks if anomaly is a false positive
     if is_positive == True:
         return anomaly
