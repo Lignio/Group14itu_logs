@@ -60,16 +60,19 @@ services:
       timeout: 5s
       retries: 5
 
-  anomaly_detector:
+  anomaly_detector: &anomaly_detector
     build:
       context: ../
       dockerfile: ./docker/anomaly_detector/Dockerfile
-    ports:
-      - "8001:8001"
     links:
       - rabbitmq 
       - controller
+    
+  #anomaly_detector2:
+   # <<: *anomaly_detector
+   
 
+ 
   rabbitmq:
     image: rabbitmq:3-management
     container_name: 'rabbitmq'

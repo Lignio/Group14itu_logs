@@ -47,23 +47,21 @@ def callback(ch, method, properties, body):
     anomaly_score = inference(analysedMessage)
 
    
-    #if anomaly_score > 0.02:
-    dt = datetime.now()
-    dts = dt.strftime("%d/%m/%Y")
+    if anomaly_score > 0.02:
+        dt = datetime.now()
+        dts = dt.strftime("%d/%m/%Y")
 
-    anomaly = {
-        'log_time':dts,
-        'log_message':analysedMessage,
-        'anomaly_score':float(anomaly_score)
-    }
+        anomaly = {
+            'log_time':dts,
+            'log_message':analysedMessage,
+            'anomaly_score':float(anomaly_score)
+        }
 
-    output = json.dumps({"anomaly": anomaly})
-    requests.post("http://controller:8002/anomalies/post_anomaly", params={
-        "log_message":analysedMessage,
-        "log_time":dts,
-        "anomaly_score":anomaly_score})
-    return anomaly
-
+        requests.post("http://controller:8002/anomalies/post_anomaly", params={
+            "log_message":analysedMessage,
+            "log_time":dts,
+            "anomaly_score":anomaly_score})
+   
 
 channel.basic_consume(queue=queue_name, auto_ack=True, on_message_callback=callback)
 

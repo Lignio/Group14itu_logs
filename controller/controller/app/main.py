@@ -4,7 +4,6 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import requests
 import json
-import threading
 import queue
 
 
@@ -126,16 +125,6 @@ def update_false_postive(uId: int, uFalse_Positive: bool):
     anomaly = data_loader.get_Anomaly(uId)
     data_writer.change_false_positive(anomaly, uFalse_Positive)
 
-
-# Starts two threads, one simulates the log stream, the other simulates stream analysis
-@app.get("/anomalies/start_stream")
-def start_stream():
-    t = threading.Thread(target=simulateLogstream)
-    t.daemon = True
-    t.start()
-    t2 = threading.Thread(target=simulateStreamAnalysis)
-    t2.daemon = True
-    t2.start()
 
 
 # method for checking if the anomaly is a false positive

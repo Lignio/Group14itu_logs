@@ -1,6 +1,7 @@
 import random
 import pika
 import json
+import threading
 
 from typing import Union
 from fastapi import FastAPI
@@ -27,19 +28,41 @@ class Anomaly(BaseModel):
     log_message: str
     anomaly_score: float
 
-
+#connecting to rabbitmqserver
 connection = pika.BlockingConnection(pika.ConnectionParameters("rmq", 5672))
 channel = connection.channel()
 
+#declare exchange for sending messages to server
 channel.exchange_declare(exchange="datagenerator", exchange_type="direct")
+
+
+# Method for simulating getting constant steam of mesagges and inserting them into the queue
+def simulateLogstream():
+    i = 0
+    while i<3000:
+        logmessage = json.dumps(data_loader.get_log_message(random.choice(ids)).log_message)
+        channel.basic_publish(
+             exchange="datagenerator", routing_key="datagenerator.found", body=logmessage
+        )
+        i+=1
+
 
 @app.get("/rabbitmqTest/")
 def publish():
+    #sendeing a random log to anomaly detector to be analysed
     logmessage = json.dumps(data_loader.get_log_message(random.choice(ids)).log_message)
     channel.basic_publish(
         exchange="datagenerator", routing_key="datagenerator.found", body=logmessage
     )
     return "success"
+
+# Starts two threads, one simulates the log stream, the other simulates stream analysis
+@app.get("/anomalies/start_stream")
+def start_stream():
+    t = threading.Thread(target=simulateLogstream)
+    t.daemon = True
+    t.start()
+
 
 @app.get("/health")
 def health():
