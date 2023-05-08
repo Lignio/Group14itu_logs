@@ -6,19 +6,20 @@ from datetime import date
 import dash_bootstrap_components as dbc
 from plotly.graph_objs import *
 import requests
+from pydantic import BaseSettings
 
 # import keyCloakHandler
-# from pydantic import BaseSettings
 
 
-# class Settings(BaseSettings):
-#    controller: str
+class Settings(BaseSettings):
+    controller: str
 
-# settings = Settings()
 
-# controller = settings.controller
+settings = Settings()
 
-# check_flag = f"{controller}/checkFlag"
+controller = settings.controller
+
+check_flag = f"{controller}/check_flag"
 
 ##The app.py page does not actually contain the pages that are being loaded, it is more so a container
 # for pages. It only contains the sidebar (containing buttons to navigate) and a page_container.
@@ -28,7 +29,7 @@ app = Dash(
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP],
     use_pages=True,
 )
-
+server = app.server
 
 app.layout = html.Div(
     children=[
@@ -182,8 +183,8 @@ def toggle_alert(n1, n2, n3, is_open):
 
 
 def check_for_new_anomalies(is_open):
-    # isFlagged = requests.get(check_flag).json()  # Calls checkFlag in Controller
-    isFlagged = requests.get("http://localhost:8002/check_flag")
+    isFlagged = requests.get(check_flag).json()  # Calls checkFlag in Controller
+    # isFlagged = requests.get("http://localhost:8002/check_flag")
     if isFlagged:
         return True
     return is_open
@@ -232,5 +233,5 @@ def toggle_fade(n, is_in):
 
 
 # Debug true allows for hot reloading while writing code.
-if __name__ == "__main__":
-    app.run(debug=True)
+# if __name__ == "__main__":
+#   app.run(debug=True, port=8050)

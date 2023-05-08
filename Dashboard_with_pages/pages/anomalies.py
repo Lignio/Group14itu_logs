@@ -9,6 +9,19 @@ import requests
 from flask import request
 from datetime import datetime, timedelta
 import time
+from pydantic import BaseSettings
+
+
+class Settings(BaseSettings):
+    controller: str
+
+
+settings = Settings()
+
+controller = settings.controller
+
+get_anomaly_list = f"{controller}/get_anomaly_list"
+update_false_positive = f"{controller}/Update_false_positive"
 
 
 dash.register_page(__name__)
@@ -365,7 +378,7 @@ def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
             else:
                 value = False
             requests.put(
-                "http://localhost:8002/anomalies/Update_false_positive",
+                update_false_positive,
                 params={"uId": selected, "uFalse_Positive": value},
             )
             return not is_open
@@ -418,11 +431,14 @@ def adjust_table(value, n):
 
 # This method gets and creates/recreates the dataframe with data from the database.
 def getDataDF():
-    data = requests.get("http://localhost:8002/anomalies/get_anomaly_list").json()
+    data = requests.get(get_anomaly_list).json()
     jsonData = json.dumps(data)
     actualDataDF = pd.read_json(jsonData)
     actualDataDF = actualDataDF.reindex(
         columns=["id", "log_message", "log_time", "false_positive", "anomaly_score"]
+    )
+    actualDataDF["log_time"] = pd.to_datetime(
+        actualDataDF["log_time"], format="%d/%m/%Y", dayfirst=True
     )
     buttonList = []
     for i in actualDataDF.index:

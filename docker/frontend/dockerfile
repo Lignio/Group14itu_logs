@@ -7,5 +7,6 @@ WORKDIR /app
 COPY ./Dashboard_with_pages .
 
 RUN pip install -e .
+RUN pip install gunicorn
 
-CMD python app.py
+CMD gunicorn --bind 0.0.0.0:8050 app:server
