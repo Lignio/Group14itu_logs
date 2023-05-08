@@ -27,7 +27,7 @@ dash.register_page(__name__, path="/")
 def getDataDFSlim():
     data = requests.get(get_anomaly_list).json()
     jsonData = json.dumps(data)
-    actualDataDF = pd.read_json(jsonData)
+    actualDataDF = pd.read_json(jsonData, convert_dates=False)
     actualDataDF = actualDataDF.reindex(
         columns=["id", "log_message", "log_time", "false_positive", "anomaly_score"]
     )
@@ -48,6 +48,24 @@ def getAnomalyScoreList():
     for i in getDataDFSlim().anomaly_score:
         anomalyScoreList.append(i)
     return anomalyScoreList
+
+
+def getAnomalyByDate():
+    anomalyDateList = {
+        "Date": [pd.Timestamp(day=6, month=5, year=2023)],
+        "Amount": [3000000],
+    }
+
+    for i in getDataDFSlim().log_time:
+        print("i: ")
+        print(i)
+        i2 = pd.to_datetime(i, format="%d/%m/%Y", dayfirst=True).date()
+        print("i2: ")
+        print(i2)
+        anomalyDateList["Date"].append(i2)
+        anomalyDateList["Amount"].append(4000000)
+
+    return anomalyDateList
 
 
 # Creates and returns a list of all false positives
@@ -90,6 +108,10 @@ def serve_layout():
         values=countvalues(),
         names=["0.02 - 0.024", "0.024 - 0.026", ">0.026"],
         title="",  # Title is blank
+    ).update_layout(margin=dict(l=20, r=20, t=30, b=20))
+
+    waveChartFig = px.line(
+        getAnomalyByDate(), x="Date", y="Amount", title="Anomalies by date"
     ).update_layout(margin=dict(l=20, r=20, t=30, b=20))
     #   The figures are currently just populated with test data. The figures are created
     # with the plotly package, so all documentation is via plotly.
@@ -412,15 +434,15 @@ def serve_layout():
                                                 "margin-top": "10px",
                                             },
                                         ),
-                                        # dcc.Graph(
-                                        #   figure=ScatterPlotFig,
-                                        #  className="",
-                                        # style={
-                                        #    "width": "40vw",
-                                        #   "height": "20vw",
-                                        #  "padding": "10px 10px 10px 10px",
-                                        # },
-                                        # ),
+                                        dcc.Graph(
+                                            figure=waveChartFig,
+                                            className="",
+                                            style={
+                                                "width": "40vw",
+                                                "height": "20vw",
+                                                "padding": "10px 10px 10px 10px",
+                                            },
+                                        ),
                                     ],
                                     className="card border-0 DropShadow",
                                     style={"margin-right": "35px"},

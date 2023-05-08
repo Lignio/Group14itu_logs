@@ -74,7 +74,7 @@ def simulateStreamAnalysis():
             analysedMessage = analysedMessage.json()
 
             dt = datetime.now()
-            dts = dt.strftime("%d/%m/%Y")
+            dts = dt.strftime()
 
             anomaly = Anomaly(
                 log_time=dts,
@@ -111,7 +111,7 @@ def post_anomaly():
     analysedMessage = analysedMessage.json()
 
     dt = datetime.now()
-    dts = dt.strftime("%d/%m/%Y")
+    dts = dt.strftime()
 
     anomaly = Anomaly(
         log_time=dts,
