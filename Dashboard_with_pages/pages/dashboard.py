@@ -100,10 +100,6 @@ def countvalues():
     return anomalyToPiechart
 
 
-# Layout = html.Div defines the out container of the whole page.
-# "children =[]" is needed when more than 1 html element is present within the container.
-
-
 # Entire html is now moved into a serve_layout() method which allows for reloading data when refreshing the page
 def serve_layout():
     # lists used for creating graphs
@@ -128,6 +124,7 @@ def serve_layout():
             html.Div(
                 id="Main-panel",
                 children=[
+                    dcc.Interval(id="count_update_interval"),
                     html.Div(
                         # Dashboard title
                         html.H1("Anomaly Dashboard", className="FontBold"),
@@ -230,6 +227,7 @@ def serve_layout():
                                                 children=[
                                                     html.H1(
                                                         len(lst1),
+                                                        id="anomaly_count",
                                                         className="cardText card-subtitle cardLine FontBold",
                                                         style={
                                                             "float": "left",
@@ -498,6 +496,7 @@ def serve_layout():
 layout = serve_layout
 
 
+# Call backs for updating graphs
 @callback(
     Output("waveGraph", component_property="figure"),
     Input("graph_update_interval", "n_intervals"),
