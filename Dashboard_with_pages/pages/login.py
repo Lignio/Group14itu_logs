@@ -53,16 +53,17 @@ def serve_layout():
 layout= serve_layout()
 
 @callback(
-    Output("location", "href"),
-    Input("LoginBTN", "n_clicks"),
+    Output("location","href"),
+    Input("LoginBTN","n_clicks"),
     [State("userForm", "value"),
     State("passForm", "value")],
     prevent_initial_call=True,
 )
-def setUsername(n_clicks, userN, pw):
-    # Remove the hashtags below to create connection to keycloak container
-    info = keyCloakHandler.getUserInfo(userN,pw)
-    if info["preferred_username"] is not None and userN is not None and pw is not None:
-        print(info)
-    keyCloakHandler.getAuthTokenForUser(userN,pw)
+def prints(n,userN,userP):
+    print(userN)
+    keyCloakHandler.CurrentUser = keyCloakHandler.currentUserSession(userN, userP)
+    print(keyCloakHandler.CurrentUser)
     return "http://127.0.0.1:8050/"
+
+
+ 

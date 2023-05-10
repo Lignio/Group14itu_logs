@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, Input, Output, callback, dash_table
+from dash import Dash, dcc, html, Input, Output, callback, dash_table,State
 import pandas as pd
 import dash
 import plotly.express as px
@@ -71,7 +71,7 @@ def countvalues():
 # Entire html is now moved into a serve_layout() method which allows for reloading data when refreshing the page
 def serve_layout():
     # lists used for creating graphs
-    if keyCloakHandler.isLogin :
+    if keyCloakHandler.CurrentUser is not None :
         lst1 = getDataDFSlim().id
         lst2 = getListOfFalsePostives()
 
@@ -91,6 +91,7 @@ def serve_layout():
         # )
         return html.Div(
             children=[
+                html.Div(style={'display':'hidden'},id='hiddendiv'),
                 html.Div(
                     id="Main-panel",
                     children=[
@@ -472,6 +473,7 @@ def serve_layout():
 
 # Sets the layout to our serve_layout
 layout = serve_layout
+
 
 
 # Callbacks define the functionality of the dashboard.
