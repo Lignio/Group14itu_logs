@@ -73,9 +73,7 @@ app.layout = html.Div(
                         )
                         for page in dash.page_registry.values()
                     ]
-                ),
-            
-                
+                ),   
             ],
         ),
         html.Div(id="Main-panel", children=[dash.page_container]),
@@ -137,12 +135,6 @@ def check_for_new_anomalies(is_open):
     if isFlagged:
         return True
     return is_open
-
-
-
-
-
-
 
 # Debug true allows for hot reloading while writing code.
 if __name__ == "__main__":

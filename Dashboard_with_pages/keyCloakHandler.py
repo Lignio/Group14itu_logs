@@ -1,5 +1,6 @@
 from keycloak import KeycloakOpenID, keycloak_admin,KeycloakAdmin
 
+isLogin = False
 # Initializes the keycloak client I think. Used to interact with keycloak most places
 keycloak_openid = KeycloakOpenID(server_url="http://localhost:8080/",
                                 client_id="dashclient",
@@ -19,10 +20,14 @@ def getAuthTokenForUser(username, userPass):
     return token
 
 def getRefreshTokenForUser(username, userPass):
-    token = keycloak_openid.token("jskoven", "123")
+    token = keycloak_openid.token(username, userPass)
+    print(getRefreshTokenForUser(username, userPass))
     return keycloak_openid.refresh_token(token['refresh_token'])
 
-
+def loggedIn(token) :
+    if token == "" :
+        return False
+    return True
 
 def getUserInfo(username,userPass):
     token = getAuthTokenForUser(username,userPass)
@@ -32,6 +37,7 @@ def getUserInfo(username,userPass):
 # Needs a refresh token to log out, which can be gotten like token is got above. Pypi site
 # Documents this quite well.
 def logoutUser(username, userpass):
+    print(getRefreshTokenForUser(username, userpass))
     keycloak_openid.logout(getRefreshTokenForUser(username, userpass)
 )
 

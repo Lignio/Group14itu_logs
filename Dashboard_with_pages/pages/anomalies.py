@@ -9,325 +9,337 @@ import requests
 from flask import request
 from datetime import datetime, timedelta
 import time
-
+import keyCloakHandler
 
 dash.register_page(__name__)
 
 
 # Entire html is now moved into a serve_layout() method which allows for reloading data when refreshing the page.
 def serve_layout():
-    actualDataDF = getDataDF()
-    # Render the layout.
-    return html.Div(
-        children=[
-            html.Div(
-                # Anomalies page title
-                html.H1("Anomalies", className="FontBold"),
-                id="TitleDIV",
-            ),
-            html.Div(
-                # This is the breadcrumb, made using Boostrap.
-                # The current href's lead nowhere, but can be easily changed to do so.
-                html.Nav(
-                    html.Ol(
-                        className="breadcrumb",
-                        children=[
-                            html.Li(
-                                className="breadcrumb-item",
-                                children=[
-                                    html.A(
-                                        "Home",
-                                        href="./home.py",
-                                        style={
-                                            "text-decoration": "none",
-                                            "color": "#6c757d",
-                                        },
-                                    )
-                                ],
-                            ),
-                            html.Li(
-                                className="breadcrumb-item",
-                                children=[
-                                    html.A(
-                                        "Anomaly Detector",
-                                        href="",
-                                        style={
-                                            "text-decoration": "none",
-                                            "color": "#6c757d",
-                                        },
-                                    )
-                                ],
-                            ),
-                            html.Li(
-                                "Anomalies",
-                                className="breadcrumb-item active FontBold",
-                                style={"color": "black"},
-                            ),
-                        ],
+    if keyCloakHandler.isLogin :
+        actualDataDF = getDataDF()
+        # Render the layout.
+        return html.Div(
+            children=[
+                dcc.Location(id="loc"),
+                html.Div(
+                    # Anomalies page title
+                    html.H1("Anomalies", className="FontBold"),
+                    id="TitleDIV",
+                ),
+                html.Div(
+                    # This is the breadcrumb, made using Boostrap.
+                    # The current href's lead nowhere, but can be easily changed to do so.
+                    html.Nav(
+                        html.Ol(
+                            className="breadcrumb",
+                            children=[
+                                html.Li(
+                                    className="breadcrumb-item",
+                                    children=[
+                                        html.A(
+                                            "Home",
+                                            href="./home.py",
+                                            style={
+                                                "text-decoration": "none",
+                                                "color": "#6c757d",
+                                            },
+                                        )
+                                    ],
+                                ),
+                                html.Li(
+                                    className="breadcrumb-item",
+                                    children=[
+                                        html.A(
+                                            "Anomaly Detector",
+                                            href="",
+                                            style={
+                                                "text-decoration": "none",
+                                                "color": "#6c757d",
+                                            },
+                                        )
+                                    ],
+                                ),
+                                html.Li(
+                                    "Anomalies",
+                                    className="breadcrumb-item active FontBold",
+                                    style={"color": "black"},
+                                ),
+                            ],
+                        ),
                     ),
                 ),
-            ),
-            # Dropdown menu
-            html.Div(
-                children=[
-                    dcc.Dropdown(
-                        [
-                            "All time",
+                # Dropdown menu
+                html.Div(
+                    children=[
+                        dcc.Dropdown(
+                            [
+                                "All time",
+                                "Today",
+                                "Yesterday",
+                                "Last two days",
+                                "Last 7 days",
+                                "This month",
+                            ],
                             "Today",
-                            "Yesterday",
-                            "Last two days",
-                            "Last 7 days",
-                            "This month",
-                        ],
-                        "Today",
-                        id="interval_picker_dropdown",
-                        style={"width": "10vw"},
-                    ),
-                ]
-            ),
-            # This is the popup menu that is shown when the user presses the ... button.
-            html.Div(
-                [
-                    dbc.Modal(
-                        [
-                            dbc.ModalHeader(dbc.ModalTitle("Options")),
-                            dbc.ModalBody(
-                                html.Div(
-                                    children=[
-                                        # This is the dropdown menu containing the options the user can choose
-                                        # in regards to marking/unmarking false positives.
-                                        dcc.Dropdown(
-                                            [
+                            id="interval_picker_dropdown",
+                            style={"width": "10vw"},
+                        ),
+                    ]
+                ),
+                # This is the popup menu that is shown when the user presses the ... button.
+                html.Div(
+                    [
+                        dbc.Modal(
+                            [
+                                dbc.ModalHeader(dbc.ModalTitle("Options")),
+                                dbc.ModalBody(
+                                    html.Div(
+                                        children=[
+                                            # This is the dropdown menu containing the options the user can choose
+                                            # in regards to marking/unmarking false positives.
+                                            dcc.Dropdown(
+                                                [
+                                                    "Mark as False Positive",
+                                                    "Unmark as False Positive",
+                                                ],
                                                 "Mark as False Positive",
-                                                "Unmark as False Positive",
-                                            ],
-                                            "Mark as False Positive",
-                                            id="demo-dropdown",
+                                                id="demo-dropdown",
+                                            ),
+                                        ]
+                                    ),
+                                ),
+                                # This is the buttons for the popup - OK to confirm the chosen marking of an anomaly/cancel to cancel.
+                                dbc.ModalFooter(
+                                    children=[
+                                        html.A(
+                                            dbc.Button(
+                                                "OK",
+                                                id="OK",
+                                                className="ms-auto",
+                                                n_clicks=0,
+                                                href="/anomalies/",
+                                            )
+                                        ),
+                                        dbc.Button(
+                                            "Close",
+                                            id="close",
+                                            className="ms-auto",
+                                            n_clicks=0,
                                         ),
                                     ]
                                 ),
-                            ),
-                            # This is the buttons for the popup - OK to confirm the chosen marking of an anomaly/cancel to cancel.
-                            dbc.ModalFooter(
-                                children=[
-                                    html.A(
-                                        dbc.Button(
-                                            "OK",
-                                            id="OK",
-                                            className="ms-auto",
-                                            n_clicks=0,
-                                            href="/anomalies/",
-                                        )
-                                    ),
-                                    dbc.Button(
-                                        "Close",
-                                        id="close",
-                                        className="ms-auto",
-                                        n_clicks=0,
-                                    ),
+                            ],
+                            id="modal",
+                            is_open=False,
+                        ),
+                    ]
+                ),
+                # This Div includes the entire card (Navbar + Datatable).
+                html.Div(
+                    children=[
+                        # Nav bar that includes an icon, three dropdown menu items, and a search bar.
+                        html.Div(
+                            children=[
+                                html.I(
+                                    className="bi bi-filter fa-2x cardLine IconBold",
+                                    style={
+                                        "float": "left",
+                                        "margin-left": "5px",
+                                        "margin-right": "15px",
+                                        "margin-top": "-5px",
+                                    },
+                                ),
+                                dbc.DropdownMenu(
+                                    label="Status",
+                                    toggle_style={
+                                        "background": "#f8f8f8",
+                                        "color": "black",
+                                    },
+                                    toggleClassName="border-white",
+                                    direction="down",
+                                    children=[
+                                        dbc.DropdownMenuItem(
+                                            "Status 1", id="status_one_option"
+                                        ),
+                                        dbc.DropdownMenuItem(
+                                            "Status 2", id="status_two_option"
+                                        ),
+                                        dbc.DropdownMenuItem(
+                                            "Status 3", id="status_three_option"
+                                        ),
+                                    ],
+                                    className="cardLine",
+                                    id="dropdownmenu_status",
+                                    style={"margin-right": "8px"},
+                                ),
+                                dbc.DropdownMenu(
+                                    label="Severity",
+                                    toggle_style={
+                                        "background": "#f8f8f8",
+                                        "color": "black",
+                                        "border": "#f8f8f8",
+                                    },
+                                    toggleClassName="",
+                                    direction="down",
+                                    children=[
+                                        dbc.DropdownMenuItem(
+                                            "Severity 1", id="severity_one_option"
+                                        ),
+                                        dbc.DropdownMenuItem(
+                                            "Severity 2", id="severity_two_option"
+                                        ),
+                                        dbc.DropdownMenuItem(
+                                            "Severity 3", id="severity_three_option"
+                                        ),
+                                    ],
+                                    className="cardLine",
+                                    id="dropdownmenu_status",
+                                    style={"margin-right": "8px"},
+                                ),
+                                dbc.DropdownMenu(
+                                    label=" Date detected",
+                                    toggle_style={
+                                        "background": "#f8f8f8",
+                                        "color": "black",
+                                    },
+                                    toggleClassName="border-white",
+                                    direction="down",
+                                    children=[
+                                        dbc.DropdownMenuItem(
+                                            "Date 1", id="date_one_option"
+                                        ),
+                                        dbc.DropdownMenuItem(
+                                            "Date 2", id="date_two_option"
+                                        ),
+                                        dbc.DropdownMenuItem(
+                                            "Date 3", id="date_three_option"
+                                        ),
+                                    ],
+                                    className="cardLine",
+                                    id="dropdownmenu_status",
+                                    style={"margin-right": "8px"},
+                                ),
+                                # Searchbar currently has no functionality. This can easily be implemented with callbacks.
+                                dbc.Input(
+                                    id="input",
+                                    className="bi bi-search fa-2x cardLine",
+                                    placeholder="Search for an anomaly...",
+                                    type="text",
+                                    style={
+                                        "width": "25vw",
+                                        "float": "right",
+                                        "background": "#f8f8f8",
+                                    },
+                                ),
+                            ],
+                            style={"margin": "10px 10px 10px 10px"},
+                        ),
+                        # Anomalies datatable, includes styling of the table/cells.
+                        dash_table.DataTable(
+                            id="InboxTable",
+                            columns=[
+                                {
+                                    "name": i,
+                                    "id": i,
+                                    "type": "numeric",
+                                }
+                                if i != "anomaly_score"
+                                else {
+                                    "name": i,
+                                    "id": i,
+                                    "type": "numeric",
+                                    "format": {"specifier": ".4f"},
+                                }
+                                for i in actualDataDF.columns
+                            ],
+                            editable=False,
+                            sort_action="native",
+                            sort_by=[{"column_id": "id", "direction": "asc"}],
+                            sort_mode="multi",
+                            style_table={
+                                "overflow": "auto",
+                                "padding": "20px 20px 20px 20px",
+                                "height": "70vh",
+                                "marginBottom": "20px",
+                            },
+                            style_data_conditional=[
+                                {
+                                    "if": {
+                                        "filter_query": '{false_positive} contains "true"',
+                                        "column_id": "false_positive",
+                                    },
+                                    "backgroundColor": "#86dd6b",
+                                },
+                                {
+                                    "if": {"column_id": "anomaly_score"},
+                                    "format": {"specifier": ".4f"},
+                                },
+                                {
+                                    "if": {
+                                        "filter_query": '{false_positive} contains "false"',
+                                        "column_id": "false_positive",
+                                    },
+                                    "backgroundColor": "#e37c8b",
+                                },
+                            ],
+                            style_header_conditional=[
+                                {
+                                    "if": {"column_id": "log_message"},
+                                    "textAlign": "left",
+                                }
+                            ],
+                            style_header={
+                                "background": "#f8f8f8",
+                                "color": "black",
+                                "fontWeight": "bold",
+                                "textAlign": "center",
+                            },
+                            style_cell_conditional=[
+                                {"if": {"column_id": a}, "textAlign": "center"}
+                                for a in [
+                                    "id",
+                                    "log_time",
+                                    "false_positive",
+                                    "anomaly_score",
+                                    "...",
                                 ]
-                            ),
-                        ],
-                        id="modal",
-                        is_open=False,
-                    ),
-                ]
-            ),
-            # This Div includes the entire card (Navbar + Datatable).
-            html.Div(
-                children=[
-                    # Nav bar that includes an icon, three dropdown menu items, and a search bar.
-                    html.Div(
-                        children=[
-                            html.I(
-                                className="bi bi-filter fa-2x cardLine IconBold",
-                                style={
-                                    "float": "left",
-                                    "margin-left": "5px",
-                                    "margin-right": "15px",
-                                    "margin-top": "-5px",
-                                },
-                            ),
-                            dbc.DropdownMenu(
-                                label="Status",
-                                toggle_style={
-                                    "background": "#f8f8f8",
-                                    "color": "black",
-                                },
-                                toggleClassName="border-white",
-                                direction="down",
-                                children=[
-                                    dbc.DropdownMenuItem(
-                                        "Status 1", id="status_one_option"
-                                    ),
-                                    dbc.DropdownMenuItem(
-                                        "Status 2", id="status_two_option"
-                                    ),
-                                    dbc.DropdownMenuItem(
-                                        "Status 3", id="status_three_option"
-                                    ),
-                                ],
-                                className="cardLine",
-                                id="dropdownmenu_status",
-                                style={"margin-right": "8px"},
-                            ),
-                            dbc.DropdownMenu(
-                                label="Severity",
-                                toggle_style={
-                                    "background": "#f8f8f8",
-                                    "color": "black",
-                                    "border": "#f8f8f8",
-                                },
-                                toggleClassName="",
-                                direction="down",
-                                children=[
-                                    dbc.DropdownMenuItem(
-                                        "Severity 1", id="severity_one_option"
-                                    ),
-                                    dbc.DropdownMenuItem(
-                                        "Severity 2", id="severity_two_option"
-                                    ),
-                                    dbc.DropdownMenuItem(
-                                        "Severity 3", id="severity_three_option"
-                                    ),
-                                ],
-                                className="cardLine",
-                                id="dropdownmenu_status",
-                                style={"margin-right": "8px"},
-                            ),
-                            dbc.DropdownMenu(
-                                label=" Date detected",
-                                toggle_style={
-                                    "background": "#f8f8f8",
-                                    "color": "black",
-                                },
-                                toggleClassName="border-white",
-                                direction="down",
-                                children=[
-                                    dbc.DropdownMenuItem(
-                                        "Date 1", id="date_one_option"
-                                    ),
-                                    dbc.DropdownMenuItem(
-                                        "Date 2", id="date_two_option"
-                                    ),
-                                    dbc.DropdownMenuItem(
-                                        "Date 3", id="date_three_option"
-                                    ),
-                                ],
-                                className="cardLine",
-                                id="dropdownmenu_status",
-                                style={"margin-right": "8px"},
-                            ),
-                            # Searchbar currently has no functionality. This can easily be implemented with callbacks.
-                            dbc.Input(
-                                id="input",
-                                className="bi bi-search fa-2x cardLine",
-                                placeholder="Search for an anomaly...",
-                                type="text",
-                                style={
-                                    "width": "25vw",
-                                    "float": "right",
-                                    "background": "#f8f8f8",
-                                },
-                            ),
-                        ],
-                        style={"margin": "10px 10px 10px 10px"},
-                    ),
-                    # Anomalies datatable, includes styling of the table/cells.
-                    dash_table.DataTable(
-                        id="InboxTable",
-                        columns=[
-                            {
-                                "name": i,
-                                "id": i,
-                                "type": "numeric",
-                            }
-                            if i != "anomaly_score"
-                            else {
-                                "name": i,
-                                "id": i,
-                                "type": "numeric",
-                                "format": {"specifier": ".4f"},
-                            }
-                            for i in actualDataDF.columns
-                        ],
-                        editable=False,
-                        sort_action="native",
-                        sort_by=[{"column_id": "id", "direction": "asc"}],
-                        sort_mode="multi",
-                        style_table={
-                            "overflow": "auto",
-                            "padding": "20px 20px 20px 20px",
-                            "height": "70vh",
-                            "marginBottom": "20px",
-                        },
-                        style_data_conditional=[
-                            {
-                                "if": {
-                                    "filter_query": '{false_positive} contains "true"',
-                                    "column_id": "false_positive",
-                                },
-                                "backgroundColor": "#86dd6b",
+                            ],
+                            style_data={
+                                "whiteSpace": "normal",
+                                "width": "100px",
                             },
-                            {
-                                "if": {"column_id": "anomaly_score"},
-                                "format": {"specifier": ".4f"},
-                            },
-                            {
-                                "if": {
-                                    "filter_query": '{false_positive} contains "false"',
-                                    "column_id": "false_positive",
-                                },
-                                "backgroundColor": "#e37c8b",
-                            },
-                        ],
-                        style_header_conditional=[
-                            {
-                                "if": {"column_id": "log_message"},
-                                "textAlign": "left",
-                            }
-                        ],
-                        style_header={
-                            "background": "#f8f8f8",
-                            "color": "black",
-                            "fontWeight": "bold",
-                            "textAlign": "center",
-                        },
-                        style_cell_conditional=[
-                            {"if": {"column_id": a}, "textAlign": "center"}
-                            for a in [
-                                "id",
-                                "log_time",
-                                "false_positive",
-                                "anomaly_score",
-                                "...",
-                            ]
-                        ],
-                        style_data={
-                            "whiteSpace": "normal",
-                            "width": "100px",
-                        },
-                        style_cell={"textAlign": "left"},
-                    ),
+                            style_cell={"textAlign": "left"},
+                        ),
+                    ],
+                    className="card bg-white DropShadow",
+                    style={
+                        "margin": "15px",
+                        "height": "8%",
+                        "width": "70vw",
+                        "display": "flex",
+                        "justify-content": "center",
+                    },
+                ),
+            ],
+            # Style customization for the whole page container:
+            style={
+                "padding-left": "30px",
+                "padding-top": "20px",
+                "background-color": "#f0f3f6",
+                "width": "80vw",
+            },
+        )
+    else :
+        return html.Div(
+            children=[
+                dcc.Location(id="loc"),
+                html.Div(
+                    # Anomalies page title
+                    id="page-content",
+                ),
                 ],
-                className="card bg-white DropShadow",
-                style={
-                    "margin": "15px",
-                    "height": "8%",
-                    "width": "70vw",
-                    "display": "flex",
-                    "justify-content": "center",
-                },
-            ),
-        ],
-        # Style customization for the whole page container:
-        style={
-            "padding-left": "30px",
-            "padding-top": "20px",
-            "background-color": "#f0f3f6",
-            "width": "80vw",
-        },
-    )
+        )
 
 
 # Sets the layout to our serve_layout
@@ -430,3 +442,10 @@ def getDataDF():
     actualDataDF["..."] = buttonList
     pd.options.display.width = 10
     return actualDataDF
+
+@callback(
+    Output('loc', 'href'),
+    Input('page-content', 'children'),
+    allow_duplicate=True)
+def toLogin(test):
+    return "http://127.0.0.1:8050/login"

@@ -14,42 +14,41 @@ dash.register_page(__name__)
 
 def serve_layout():
     #div that cover the whole side
-    return html.Div([
-        html.Div(id="hiddenDiv",style={"display":"none"}),
-        dcc.Location(id="location"),
-        dbc.Col([
-            html.H2("Log in", className="SideElement", style={"margin":"5vh"}),
-            dbc.FormFloating(
+        return html.Div([
+            html.Div(id="hiddenDiv",style={"display":"none"}),
+            dcc.Location(id="location"),
+            dbc.Col([
+                html.H2("Log in", className="SideElement", style={"margin":"5vh"}),
+                dbc.FormFloating(
+                        [
+                            dbc.Input(placeholder="example@internet.com", id="userForm"),
+                            dbc.Label("Username"),
+                        ],
+                        style={"width": "50%","padding-bottom":"5vh"},
+                        className="SideElement",
+                    ),
+                dbc.FormFloating(
                     [
-                        dbc.Input(placeholder="example@internet.com", id="userForm"),
-                        dbc.Label("Username"),
+                        dbc.Input(
+                            type="password",
+                            placeholder="example@internet.com",
+                            id="passForm",
+                        ),
+                        dbc.Label("Password"),
                     ],
                     style={"width": "50%","padding-bottom":"5vh"},
                     className="SideElement",
                 ),
-            dbc.FormFloating(
-                [
-                    dbc.Input(
-                        type="password",
-                        placeholder="example@internet.com",
-                        id="passForm",
-                    ),
-                    dbc.Label("Password"),
-                ],
-                style={"width": "50%","padding-bottom":"5vh"},
-                className="SideElement",
-            ),
-            dbc.Button(
-                "Login",
-                className="SideBTN SideElement bi bi-box-arrow-in-right",
-                style={"vertical-align": "text-bottom",},
-                id="LoginBTN",
-                n_clicks=0
-            )
-        ],className='loginCard'),
-        
-    ],className="centered SystematicGradient")
-
+                dbc.Button(
+                    "Login",
+                    className="SideBTN SideElement bi bi-box-arrow-in-right",
+                    style={"vertical-align": "text-bottom",},
+                    id="LoginBTN",
+                    n_clicks=0
+                )
+            ],className='loginCard'),   
+        ],className="centered SystematicGradient"
+)
 
 layout= serve_layout()
 
@@ -67,4 +66,3 @@ def setUsername(n_clicks, userN, pw):
         print(info)
     keyCloakHandler.getAuthTokenForUser(userN,pw)
     return "http://127.0.0.1:8050/"
-    
