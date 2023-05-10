@@ -70,6 +70,9 @@ def getAnomalyByDate():
     return anomalyDateList
 
 
+# def getAnomaliesInPeriode():
+
+
 # Creates and returns a list of all false positives
 def getListOfFalsePostives():
     data = []
@@ -77,6 +80,10 @@ def getListOfFalsePostives():
         if i == True:
             data.append(i)
     return data
+
+
+def procentOfFalsePositives():
+    return round(((len(getListOfFalsePostives())) / (len(getDataDFSlim()))) * 100, 2)
 
 
 # Counts and partitions the anomaly scores in the anomalyScore list into a list used for the piechart
@@ -173,31 +180,21 @@ def serve_layout():
                     # ClassName/Style doesn't work. Instead toggle_style/toggleClassName is used.
                     html.Div(
                         children=[
-                            dbc.DropdownMenu(
-                                label=" Today",
+                            dcc.Dropdown(
+                                [
+                                    "All time",
+                                    "Today",
+                                    "Yesterday",
+                                    "Last two days",
+                                    "Last 7 days",
+                                    "This month",
+                                ],
+                                "Today",
                                 toggle_style={"background": "white", "color": "black"},
                                 toggleClassName="border-white DropShadow bi bi-calendar-day",
                                 direction="down",
-                                children=[
-                                    dbc.DropdownMenuItem(
-                                        "All time", id="all_time_option"
-                                    ),
-                                    dbc.DropdownMenuItem("Today", id="today_option"),
-                                    dbc.DropdownMenuItem(
-                                        "Yesterday", id="yesterday_option"
-                                    ),
-                                    dbc.DropdownMenuItem(
-                                        "Last two days", id="last_two_days_option"
-                                    ),
-                                    dbc.DropdownMenuItem(
-                                        "Last 7 days", id="last_7_days_option"
-                                    ),
-                                    dbc.DropdownMenuItem(
-                                        "This month", id="this_month_option"
-                                    ),
-                                ],
                                 className="",
-                                id="dropdownmenu",
+                                id="DateSelecter",
                                 style={"margin-bottom": "20px"},
                             ),
                         ]
@@ -303,8 +300,11 @@ def serve_layout():
                                                     html.Div(
                                                         children=[
                                                             html.H2(
-                                                                " 00%",
-                                                                className="RedCard bi bi-graph-up cardText card-subtitle cardLine FontBold IconBold",
+                                                                str(
+                                                                    procentOfFalsePositives()
+                                                                )
+                                                                + "%",
+                                                                className="GreenCard bi bi-graph-up cardText card-subtitle cardLine FontBold IconBold",
                                                                 style={
                                                                     "float": "right",
                                                                     "margin-top": "35px",
@@ -494,33 +494,8 @@ layout = serve_layout
 # Callbacks define the functionality of the dashboard.
 # Callback for dropdownmenu. The method changes the label of the dropdown menu.
 @callback(
-    Output("dropdownmenu", "label"),
-    [
-        Input("all_time_option", "n_clicks"),
-        Input("today_option", "n_clicks"),
-        Input("yesterday_option", "n_clicks"),
-        Input("last_two_days_option", "n_clicks"),
-        Input("last_7_days_option", "n_clicks"),
-        Input("this_month_option", "n_clicks"),
-    ],
+    Output("DateSelecter", "label"),
+    Input("DateSelecter", "value"),
 )
-def update_dropdownmenu_label(n1, n2, n3, n4, n5, n6):
-    # Maps the ids of the dropdown menu to their text
-    # and changes the label of the dropdownmenu.
-    id_lookup = {
-        "all_time_option": " All time",
-        "today_option": " Today",
-        "yesterday_option": " Yesterday",
-        "last_two_days_option": " Last Two Days",
-        "last_7_days_option": " Last 7 Days",
-        "this_month_option": " This month",
-    }
-
-    ctx = dash.callback_context
-
-    # This gets the id of the button that triggered the callback
-    button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    # If a button hasn't been clicked, it defaults to today. (Everytime you load the website)
-    if button_id == "":
-        return " Today"
-    return id_lookup[button_id]
+def update_dropdownmenu_label(value):
+    return value

@@ -437,14 +437,9 @@ def getDataDF():
     actualDataDF = actualDataDF.reindex(
         columns=["id", "log_message", "log_time", "false_positive", "anomaly_score"]
     )
-    print("before: ")
-    print(actualDataDF["log_time"])
     actualDataDF["log_time"] = pd.to_datetime(
         actualDataDF["log_time"], format="%d/%m/%Y", dayfirst=True
     )
-    print("after: ")
-    print(actualDataDF["log_time"])
-
     buttonList = []
     for i in actualDataDF.index:
         buttonList.append("...")
