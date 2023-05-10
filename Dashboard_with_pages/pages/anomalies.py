@@ -274,6 +274,15 @@ def serve_layout():
                             "height": "70vh",
                             "marginBottom": "20px",
                         },
+                        tooltip_conditional = [
+                            {
+                                'if': {'column_id': col},
+                                'value': 'Click here to edit this value',
+                                'use_with': 'data'
+                            } for col in ['false_positive', '...']
+                        ],
+
+                        
                         style_data_conditional=[
                             {
                                 "if": {
@@ -384,14 +393,14 @@ def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
             return not is_open
         if "close" == ctx.triggered_id:
             return not is_open
-        elif col == "...":
+        elif (col == "...") or (col == "false_positive"):
             return not is_open
         elif col == "log_message":
             return is_open
 
 
 def calculate_interval(value):
-    today = pd.Timestamp("today").floor("D")
+    today = pd.Timestamp('today').floor("D")
     match value:
         case "Today":
             return (today, today)
