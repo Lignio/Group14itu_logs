@@ -7,6 +7,7 @@ import dash_bootstrap_components as dbc
 import requests
 from plotly.graph_objs import *
 import json
+import time
 from pydantic import BaseSettings
 
 
@@ -188,7 +189,7 @@ def serve_layout():
                                 ],
                                 "Today",
                                 className="border-white DropShadow",
-                                id="date_selector",
+                                id="interval_selector",
                                 style={
                                     "width": "10vw",
                                     "margin-bottom": "20px",
@@ -497,6 +498,45 @@ def serve_layout():
 
 # Sets the layout to our serve_layout
 layout = serve_layout
+
+
+def calculate_interval(value):
+    today = pd.Timestamp("today").floor("D")
+    match value:
+        case "Today":
+            return (today, today)
+        case "Yesterday":
+            return (today + pd.offsets.Day(-1), today + pd.offsets.Day(-1))
+        case "Last two days":
+            return (today, today + pd.offsets.Day(-1))
+        case "Last 7 days":
+            return (today, today + pd.offsets.Day(-6))
+        case "This month":
+            return (today, today + pd.offsets.MonthEnd(-1))
+        case "All time":
+            return (today, pd.Timestamp(year=1999, month=1, day=1))
+
+
+# Method for updating dataframe
+# When an option is selected in the dropdown the table is updated to fit the filter
+# When the ok button is clicked we also update the table
+@callback(
+    Output("InboxTable", component_property="data"),
+    [
+        Input("interval_selector", "value"),
+        Input("count_update_interval", "n_intervals"),
+    ],
+)
+def adjust_table(value, interval):
+    time.sleep(0.1)
+    actualDataDF = getDataDFSlim()
+    interval = calculate_interval(value)
+
+    copyDf = actualDataDF[
+        (actualDataDF["log_time"] <= interval[0])
+        & (actualDataDF["log_time"] >= interval[1])
+    ]
+    return copyDf.to_dict(orient="records")
 
 
 # Call backs for updating graphs
