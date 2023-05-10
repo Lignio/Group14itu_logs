@@ -277,11 +277,17 @@ def serve_layout():
                         tooltip_conditional = [
                             {
                                 'if': {'column_id': col},
-                                'value': 'Click here to edit this value',
+                                'value': 'Click to edit this value',
                                 'use_with': 'data'
                             } for col in ['false_positive', '...']
                         ],
 
+                        css=[{
+                            'selector': '.dash-table-tooltip',
+                            'rule': 'background-color: #141446; color: white'
+                        }],
+                        tooltip_delay=0,
+                        tooltip_duration=None,
                         
                         style_data_conditional=[
                             {
