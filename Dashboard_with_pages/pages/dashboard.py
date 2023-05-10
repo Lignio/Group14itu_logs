@@ -124,7 +124,7 @@ def serve_layout():
             html.Div(
                 id="Main-panel",
                 children=[
-                    dcc.Interval(id="count_update_interval", interval=5 * 1000),
+                    dcc.Interval(id="count_update_interval", interval=1 * 1000),
                     html.Div(
                         # Dashboard title
                         html.H1("Anomaly Dashboard", className="FontBold"),
@@ -289,6 +289,7 @@ def serve_layout():
                                                 children=[
                                                     html.H1(
                                                         len(lst2),
+                                                        id="false_positive_count",
                                                         className="cardText card-subtitle cardLine FontBold",
                                                         style={
                                                             "float": "left",
@@ -511,7 +512,7 @@ def update_wavegraph(intervals):
 
 @callback(
     Output("piechart", component_property="figure"),
-    Input("graph_update_interval", "n_interval"),
+    Input("graph_update_interval", "n_intervals"),
 )
 def update_piechart(intervals):
     return px.pie(
@@ -519,3 +520,18 @@ def update_piechart(intervals):
         names=["0.02 - 0.024", "0.024 - 0.026", ">0.026"],
         title="",  # Title is blank
     ).update_layout(margin=dict(l=20, r=20, t=30, b=20))
+
+
+@callback(
+    Output("anomaly_count", "children"), Input("count_update_interval", "n_intervals")
+)
+def update_anomaly_count(interval):
+    return len(getDataDFSlim().id)
+
+
+@callback(
+    Output("false_positive_count", "children"),
+    Input("count_update_interval", "n_intervals"),
+)
+def update_false_positive_count(interval):
+    return len(getListOfFalsePostives())
