@@ -50,20 +50,22 @@ def getAnomalyScoreList():
     return anomalyScoreList
 
 
+# returns a dictionary with each date an anomaly has appeared
+# and the amount of anomalies for each date
+# Used for wave graph
 def getAnomalyByDate():
-    anomalyDateList = {
-        "Date": [pd.Timestamp(day=6, month=5, year=2023)],
-        "Amount": [3000000],
-    }
+    anomalyDateList = {}
+
+    helperMap = {}
 
     for i in getDataDFSlim().log_time:
-        print("i: ")
-        print(i)
-        i2 = pd.to_datetime(i, format="%d/%m/%Y", dayfirst=True).date()
-        print("i2: ")
-        print(i2)
-        anomalyDateList["Date"].append(i2)
-        anomalyDateList["Amount"].append(4000000)
+        if i in helperMap:
+            helperMap[i] = helperMap[i] + 1
+        else:
+            helperMap[i] = 1
+
+    anomalyDateList["Date"] = helperMap.keys()
+    anomalyDateList["Amount"] = helperMap.values()
 
     return anomalyDateList
 
@@ -88,7 +90,6 @@ def countvalues():
             anomalyToPiechart[1] += 1
         else:
             anomalyToPiechart[2] += 1
-    print(anomalyToPiechart)
     return anomalyToPiechart
 
 
@@ -110,16 +111,11 @@ def serve_layout():
         title="",  # Title is blank
     ).update_layout(margin=dict(l=20, r=20, t=30, b=20))
 
-    waveChartFig = px.line(
-        getAnomalyByDate(), x="Date", y="Amount", title="Anomalies by date"
-    ).update_layout(margin=dict(l=20, r=20, t=30, b=20))
-    #   The figures are currently just populated with test data. The figures are created
-    # with the plotly package, so all documentation is via plotly.
-    # ScatterPlotFig = px.scatter(x=lst1, y=lst2, title="").update_layout(  # Title is blank
-    #   xaxis_title="Name length",
-    #  yaxis_title="Name count",
-    # margin=dict(l=20, r=20, t=30, b=20),
-    # )
+    # used for making the line graph, gets its values from getAnomalyByDate()
+    waveChartFig = px.line(getAnomalyByDate(), x="Date", y="Amount").update_layout(
+        margin=dict(l=20, r=20, t=30, b=20)
+    )
+
     return html.Div(
         children=[
             html.Div(
