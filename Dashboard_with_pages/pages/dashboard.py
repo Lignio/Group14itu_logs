@@ -416,6 +416,11 @@ def serve_layout():
                     html.Div(
                         html.Div(
                             children=[
+                                dcc.Interval(
+                                    id="graph_update_interval",
+                                    interval=5 * 1000,
+                                    n_intervals=0,
+                                ),
                                 # Both graphs on the page are set here. Dash has the dcc.Graph component which takes
                                 # a plotly figure as it's figure parameter. The style of it only defines
                                 # the container containing the figure. All customization of the actual graph is done
@@ -431,6 +436,7 @@ def serve_layout():
                                             },
                                         ),
                                         dcc.Graph(
+                                            id="waveGraph",
                                             figure=waveChartFig,
                                             className="",
                                             style={
@@ -454,6 +460,7 @@ def serve_layout():
                                             },
                                         ),
                                         dcc.Graph(
+                                            id="piechart",
                                             figure=PieChartFig,
                                             className="",
                                             style={
@@ -489,6 +496,28 @@ def serve_layout():
 
 # Sets the layout to our serve_layout
 layout = serve_layout
+
+
+@callback(
+    Output("waveGraph", component_property="figure"),
+    Input("graph_update_interval", "n_intervals"),
+)
+def update_wavegraph(intervals):
+    return px.line(getAnomalyByDate(), x="Date", y="Amount").update_layout(
+        margin=dict(l=20, r=20, t=30, b=20)
+    )
+
+
+@callback(
+    Output("piechart", component_property="figure"),
+    Input("graph_update_interval", "n_interval"),
+)
+def update_piechart(intervals):
+    return px.pie(
+        values=countvalues(),
+        names=["0.02 - 0.024", "0.024 - 0.026", ">0.026"],
+        title="",  # Title is blank
+    ).update_layout(margin=dict(l=20, r=20, t=30, b=20))
 
 
 # Callbacks define the functionality of the dashboard.
