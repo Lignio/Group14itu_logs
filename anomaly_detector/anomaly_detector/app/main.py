@@ -22,46 +22,54 @@ channel.queue_bind(
     exchange="datagenerator", queue=queue_name, routing_key="datagenerator.found"
 )
 
+
 # class representing an anomaly.
 class Anomaly(BaseModel):
     log_time: str
     log_message: str
     anomaly_score: float
 
+
 class Prediction(BaseModel):
     log_message: str
     anomaly_score: float
     is_anomaly: bool
+
 
 def predict(log_message: str, threshold: float = 0.02):
     anomaly_score = inference(log_message)
     is_anomaly = False
     if anomaly_score > threshold:
         is_anomaly = True
-    return Prediction(log_message=log_message, anomaly_score=anomaly_score, is_anomaly=is_anomaly)
+    return Prediction(
+        log_message=log_message, anomaly_score=anomaly_score, is_anomaly=is_anomaly
+    )
+
 
 # Callback to analyze received anomaly. The body consists of code from post_anomaly.
 def callback(ch, method, properties, body):
-
-    analysedMessage = str (body) 
+    analysedMessage = str(body)
     anomaly_score = inference(analysedMessage)
 
-   
     if anomaly_score > 0.02:
         dt = datetime.now()
         dts = dt.strftime("%d/%m/%Y")
 
         anomaly = {
-            'log_time':dts,
-            'log_message':analysedMessage,
-            'anomaly_score':float(anomaly_score)
+            "log_time": dts,
+            "log_message": analysedMessage,
+            "anomaly_score": float(anomaly_score),
         }
 
-        requests.post("http://controller:8002/anomalies/post_anomaly", params={
-            "log_message":analysedMessage,
-            "log_time":dts,
-            "anomaly_score":anomaly_score})
-   
+        requests.post(
+            "http://controller:8002/anomalies/post_anomaly",
+            params={
+                "log_message": analysedMessage,
+                "log_time": dts,
+                "anomaly_score": anomaly_score,
+            },
+        )
+
 
 channel.basic_consume(queue=queue_name, auto_ack=True, on_message_callback=callback)
 
@@ -80,4 +88,6 @@ def getPredict(log_message: str, threshold: float = 0.02):
     is_anomaly = False
     if anomaly_score > threshold:
         is_anomaly = True
-    return Prediction(log_message=log_message, anomaly_score=anomaly_score, is_anomaly=is_anomaly)
+    return Prediction(
+        log_message=log_message, anomaly_score=anomaly_score, is_anomaly=is_anomaly
+    )
