@@ -36,7 +36,7 @@ channel = connection.channel()
 channel.exchange_declare(exchange="datagenerator", exchange_type="direct")
 
 
-# Method for simulating getting constant steam of mesagges and inserting them into the queue
+# Method for simulating getting constant steam of messages and inserting them into the queue
 def simulateLogstream():
     i = 0
     while i<3000:
