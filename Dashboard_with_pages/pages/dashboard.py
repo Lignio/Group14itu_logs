@@ -124,7 +124,7 @@ def serve_layout():
             html.Div(
                 id="Main-panel",
                 children=[
-                    dcc.Interval(id="count_update_interval"),
+                    dcc.Interval(id="count_update_interval", interval=5 * 1000),
                     html.Div(
                         # Dashboard title
                         html.H1("Anomaly Dashboard", className="FontBold"),
@@ -187,12 +187,14 @@ def serve_layout():
                                     "This month",
                                 ],
                                 "Today",
-                                toggle_style={"background": "white", "color": "black"},
-                                toggleClassName="border-white DropShadow bi bi-calendar-day",
-                                direction="down",
-                                className="",
-                                id="DateSelecter",
-                                style={"margin-bottom": "20px"},
+                                className="border-white DropShadow",
+                                id="date_selector",
+                                style={
+                                    "width": "10vw",
+                                    "margin-bottom": "20px",
+                                    "background": "white",
+                                    "color": "black",
+                                },
                             ),
                         ]
                     ),
@@ -517,13 +519,3 @@ def update_piechart(intervals):
         names=["0.02 - 0.024", "0.024 - 0.026", ">0.026"],
         title="",  # Title is blank
     ).update_layout(margin=dict(l=20, r=20, t=30, b=20))
-
-
-# Callbacks define the functionality of the dashboard.
-# Callback for dropdownmenu. The method changes the label of the dropdown menu.
-@callback(
-    Output("DateSelecter", "label"),
-    Input("DateSelecter", "value"),
-)
-def update_dropdownmenu_label(value):
-    return value
