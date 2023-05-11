@@ -54,7 +54,6 @@ app.layout = html.Div(
                     children=[
                         html.Div(
                            html.Div(style={"display":"hidden"})
-
                             if "Login" in f" {page['name']}"
                             else
                             dbc.Button(
@@ -77,26 +76,19 @@ app.layout = html.Div(
                             },
                         )
                         for page in dash.page_registry.values() #load pages for the sidebar 
-                        # if  page['name'].startswith("/") or page["path"].startswith("/anomalies") 
                     ]
                 ),
-                #-------------------------TEST -------------------------
                 #only login/logout button
                 #outside the rest of the button to handle the change of name and function with login/logout
                 html.Div( #
                     children =[
                          html.Div(
-                            dbc.Button(
-                                f" {dash.page_registry['pages.login']['name']}",
-                                color="secondary",
-                                class_name="SideBTN SideElement bi bi-kanban",
-                                href=dash.page_registry['pages.login']["relative_path"],
-                            )
+                            html.Div(style={"display":"hidden"})
                             if "Dashboard" in f" {dash.page_registry['pages.login']['name']}" #Makes the pictogram different from dashboard
                             else dbc.Button(
                                 "logout",
                                 id="logInOutBtn",
-                                # n_clicks = 0,
+                                n_clicks = 0,
                                 color="secondary",
                                 class_name="SideBTN SideElement bi bi-exclamation-circle",
                                 href=dash.page_registry['pages.login']["relative_path"],
@@ -105,12 +97,11 @@ app.layout = html.Div(
                                 "margin-top": "5vh",
                                 "margin-left": "2%",
                                 "font-weight": "500",
-                            } 
+                            },
+                            id="test" 
                         )
-                        # for page in dash.page_registry['pages.login'] #load pages for the sidebar     
                 ]
                 ),  
-                #--------------------------TEST ----------------------- 
             ],
         ),
         html.Div(id="Main-panel", children=[dash.page_container]),
@@ -173,21 +164,21 @@ def check_for_new_anomalies(is_open):
         return True
     return is_open
 
+#changes the button from login to logout depending on currentuser
+@app.callback(
+    Output('logInOutBtn', 'children'),
+    Input('logInOutBtn', 'n_clicks')
+)
+def changeLogIn(n_clicks) :
+    if keyCloakHandler.CurrentUser is None:
+        return "Log in"
+    return "Log out"
+
+
 # Debug true allows for hot reloading while writing code.
 if __name__ == "__main__":
     app.run(debug=True)
 
-@app.callback(
-    [Output('logInOutBtn', 'value')],
-    # Output('logInOutBtn', 'style')],
-    [Input('logInOutBtn', 'n_clicks')]
-)
-def changeLogIn(n_clicks) :
-    bool_disabled = n_clicks % 2
-    if bool_disabled :
-        print("log in pushed")
-        return "Log out"
-    print("log in pushed")
-    return "Log in"
+
     
 
