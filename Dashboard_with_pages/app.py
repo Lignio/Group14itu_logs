@@ -7,7 +7,7 @@ import dash_bootstrap_components as dbc
 from plotly.graph_objs import *
 import requests
 
-# import keyCloakHandler
+import keyCloakHandler
 # from pydantic import BaseSettings
 
 
@@ -49,9 +49,13 @@ app.layout = html.Div(
                         ),
                     ]
                 ),
+                # Dashboard and anomaly button taken from a registry containing all of the pages
                 html.Div(
                     children=[
                         html.Div(
+                           html.Div(style={"display":"hidden"})
+                            if "Login" in f" {page['name']}"
+                            else
                             dbc.Button(
                                 f" {page['name']}",
                                 color="secondary",
@@ -71,9 +75,41 @@ app.layout = html.Div(
                                 "font-weight": "500",
                             },
                         )
-                        for page in dash.page_registry.values()
+                        for page in dash.page_registry.values() #load pages for the sidebar 
+                        # if  page['name'].startswith("/") or page["path"].startswith("/anomalies") 
                     ]
-                ),   
+                ),
+                #-------------------------TEST -------------------------
+                #only login/logout button
+                #outside the rest of the button to handle the change of name and function with login/logout
+                html.Div( #
+                    children =[
+                         html.Div(
+                            dbc.Button(
+                                f" {dash.page_registry['pages.login']['name']}",
+                                color="secondary",
+                                class_name="SideBTN SideElement bi bi-kanban",
+                                href=dash.page_registry['pages.login']["relative_path"],
+                            )
+                            if "Dashboard" in f" {dash.page_registry['pages.login']['name']}" #Makes the pictogram different from dashboard
+                            else dbc.Button(
+                                "logout",
+                                id="logInOutBtn",
+                                # n_clicks = 0,
+                                color="secondary",
+                                class_name="SideBTN SideElement bi bi-exclamation-circle",
+                                href=dash.page_registry['pages.login']["relative_path"],
+                            ),
+                            style={
+                                "margin-top": "5vh",
+                                "margin-left": "2%",
+                                "font-weight": "500",
+                            } 
+                        )
+                        # for page in dash.page_registry['pages.login'] #load pages for the sidebar     
+                ]
+                ),  
+                #--------------------------TEST ----------------------- 
             ],
         ),
         html.Div(id="Main-panel", children=[dash.page_container]),
@@ -139,3 +175,18 @@ def check_for_new_anomalies(is_open):
 # Debug true allows for hot reloading while writing code.
 if __name__ == "__main__":
     app.run(debug=True)
+
+@app.callback(
+    [Output('logInOutBtn', 'value')],
+    # Output('logInOutBtn', 'style')],
+    [Input('logInOutBtn', 'n_clicks')]
+)
+def changeLogIn(n_clicks) :
+    bool_disabled = n_clicks % 2
+    if bool_disabled :
+        print("log in pushed")
+        return "Log out"
+    print("log in pushed")
+    return "Log in"
+    
+
