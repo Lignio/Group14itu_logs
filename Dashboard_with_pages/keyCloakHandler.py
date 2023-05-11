@@ -1,7 +1,11 @@
 from keycloak import KeycloakOpenID, keycloak_admin,KeycloakAdmin
 
-isLogin = True
+#--- Currently logged in user ---#
 CurrentUser = None
+# This field is the one that acts as the active user session. The pages  does and should interact
+# with this field only through the currentUserSession class, as the field is set to an instance of that class when you log in.
+#--------------------------------#
+
 # Initializes the keycloak client I think. Used to interact with keycloak most places
 keycloak_openid = KeycloakOpenID(server_url="http://localhost:8080/",
                                 client_id="dashclient",
@@ -21,49 +25,22 @@ def getAuthTokenForUser(username, userPass):
     token = keycloak_openid.token(username, userPass)['access_token']
     return token
 
-def getRefreshTokenForUser(username, userPass):
-    token = keycloak_openid.token(username, userPass)
-    print(getRefreshTokenForUser(username, userPass))
-    return keycloak_openid.refresh_token(token['refresh_token'])
-
-def loggedIn(token) :
-    if token == "" :
-        return False
-    return True
-
+# Get user info returns only the basic info on the user, such as their username and email. 
+# This function is not in use right now, but is there if we need it going forward.
 def getUserInfo(username,userPass):
     token = getAuthTokenForUser(username,userPass)
     return keycloak_openid.userinfo(token)
 
-# Doesn't work yet, need to figure out how this works. 
-# Needs a refresh token to log out, which can be gotten like token is got above. Pypi site
-# Documents this quite well.
-def logoutUser(username, userpass):
-    print(getRefreshTokenForUser(username, userpass))
-    keycloak_openid.logout(getRefreshTokenForUser(username, userpass)
-)
-
-def isUserLoggedIn():
-    if CurrentUser is None:
-         return False
-    else:
-        return True
-
 # Admin client is used to gain access to a users groups and roles. Is done with user_id, not username.
 # Example userID: 47c7a85c-0764-4a20-bbf6-ba7fe2860e26
-# UserID is available to see in the keycloak admin console, but is also returned with userinfo sa in
+# UserID is available to see in the keycloak admin console, but is also returned with userinfo as in
 # getAuthTokenForUser
+# This function is not in use right now, but is there if we need it going forward.
 def getUserGroupsAndRoles(userID):
     return admin.get_user_groups(user_id=userID)
 
-def createUser(email, username, password):
-    admin.create_user({"email": email,
-                                       "username": username,
-                                       "enabled": True,
-                                       "firstName": "Example",
-                                       "lastName": "Example",
-                    "credentials": [{"value": "secret","type": password,}]})
-
+# This class handles any active user session. The token is never interacted with outside the class, and
+# should not be.
 class currentUserSession():
     def __init__(self, userName, userPass):
         self.__token = getAuthTokenForUser(userName, userPass)
@@ -80,8 +57,3 @@ class currentUserSession():
 
     def isLoggedIn(self):
         return False if self.__token is None else True
-
-
-if __name__ == "__main__":
-    jskoven = currentUserSession("testuser","1")
-    print(jskoven)
