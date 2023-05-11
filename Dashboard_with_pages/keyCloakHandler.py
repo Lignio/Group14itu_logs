@@ -77,5 +77,5 @@ class currentUserSession():
 
 
 if __name__ == "__main__":
-    jskoven = currentUserSession("testuser","123")
+    jskoven = currentUserSession("testuser","1")
     print(jskoven)
