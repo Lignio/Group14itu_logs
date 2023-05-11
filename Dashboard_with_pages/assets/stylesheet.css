@@ -31,7 +31,7 @@ h1, h2, h3, h4, h5, h6, P {
 
 /* For item that needs to be on the same line on a card */
 .cardLine {
-    display: inline-block;
+    display: inline;
 
 }
 
@@ -64,7 +64,7 @@ h1, h2, h3, h4, h5, h6, P {
 .FontBold {
     font-family: Inter, sans-serif;
     font-weight: 501;
-    
+
 }
 
 /* Makes icon bolder */
