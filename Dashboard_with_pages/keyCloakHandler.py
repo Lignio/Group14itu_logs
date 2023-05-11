@@ -7,17 +7,11 @@ CurrentUser = None
 #--------------------------------#
 
 # Initializes the keycloak client I think. Used to interact with keycloak most places
-keycloak_openid = KeycloakOpenID(server_url="http://localhost:8080/",
+keycloak_openid = KeycloakOpenID(server_url="http://keycloak:8080/",
                                 client_id="dashclient",
                                 realm_name="master",
                                 client_secret_key="woo797pz61dd17nZxWTWQfMygWLY4DJB")
 
-# Initializes the keycloak admin client, used to get access to user groups and permissions
-admin = KeycloakAdmin(server_url='http://localhost:8080/',
-                      username='admin',
-                      password='admin',
-                      realm_name='master',
-                      verify=True)
 
 # Gets authentication token for user, used to gain access to user information based on login info
 def getAuthTokenForUser(username, userPass):
@@ -31,13 +25,6 @@ def getUserInfo(username,userPass):
     token = getAuthTokenForUser(username,userPass)
     return keycloak_openid.userinfo(token)
 
-# Admin client is used to gain access to a users groups and roles. Is done with user_id, not username.
-# Example userID: 47c7a85c-0764-4a20-bbf6-ba7fe2860e26
-# UserID is available to see in the keycloak admin console, but is also returned with userinfo as in
-# getAuthTokenForUser
-# This function is not in use right now, but is there if we need it going forward.
-def getUserGroupsAndRoles(userID):
-    return admin.get_user_groups(user_id=userID)
 
 # This class handles any active user session. The token is never interacted with outside the class, and
 # should not be.
