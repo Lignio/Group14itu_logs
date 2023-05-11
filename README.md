@@ -35,3 +35,6 @@ Swagger ui is provided on localhost:8002/docs
 
 ### Accessing the Frontend
 The Frontend is a website that can be accesssed on localhost:8050
+
+### Bugs and other issues
+Currently the dropdown for severety on the Anomlies page does not display properly on firefox.
