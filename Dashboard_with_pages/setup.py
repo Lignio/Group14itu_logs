@@ -45,6 +45,7 @@ dependent_packages = {
     "pandas": ("1.5.3", CORE),
     "requests": ("2.28.2", CORE),
     "pydantic": ("1.10.6", CORE),
+    "loguru": ("0.7.0", CORE),
 }
 
 tag_to_packages: dict = {extra: [] for extra in REQUIREMENTS_GROUPS}

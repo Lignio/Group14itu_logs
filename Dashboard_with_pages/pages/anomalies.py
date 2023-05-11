@@ -10,6 +10,7 @@ from flask import request
 from datetime import datetime, timedelta
 import time
 from pydantic import BaseSettings
+from loguru import logger
 
 
 class Settings(BaseSettings):
@@ -161,75 +162,17 @@ def serve_layout():
                                     "margin-top": "-5px",
                                 },
                             ),
-                            dbc.DropdownMenu(
-                                label="Status",
-                                toggle_style={
-                                    "background": "#f8f8f8",
-                                    "color": "black",
-                                },
-                                toggleClassName="border-white",
-                                direction="down",
-                                children=[
-                                    dbc.DropdownMenuItem(
-                                        "Status 1", id="status_one_option"
-                                    ),
-                                    dbc.DropdownMenuItem(
-                                        "Status 2", id="status_two_option"
-                                    ),
-                                    dbc.DropdownMenuItem(
-                                        "Status 3", id="status_three_option"
-                                    ),
+                            dcc.Dropdown(
+                                [
+                                    "Low Severity",
+                                    "Medium Severity",
+                                    "High Severity",
+                                    "Any Severity",
                                 ],
+                                "Any Severity",
+                                id="dropdownmenu_severity",
                                 className="cardLine",
-                                id="dropdownmenu_status",
-                                style={"margin-right": "8px"},
-                            ),
-                            dbc.DropdownMenu(
-                                label="Severity",
-                                toggle_style={
-                                    "background": "#f8f8f8",
-                                    "color": "black",
-                                    "border": "#f8f8f8",
-                                },
-                                toggleClassName="",
-                                direction="down",
-                                children=[
-                                    dbc.DropdownMenuItem(
-                                        "Severity 1", id="severity_one_option"
-                                    ),
-                                    dbc.DropdownMenuItem(
-                                        "Severity 2", id="severity_two_option"
-                                    ),
-                                    dbc.DropdownMenuItem(
-                                        "Severity 3", id="severity_three_option"
-                                    ),
-                                ],
-                                className="cardLine",
-                                id="dropdownmenu_status",
-                                style={"margin-right": "8px"},
-                            ),
-                            dbc.DropdownMenu(
-                                label=" Date detected",
-                                toggle_style={
-                                    "background": "#f8f8f8",
-                                    "color": "black",
-                                },
-                                toggleClassName="border-white",
-                                direction="down",
-                                children=[
-                                    dbc.DropdownMenuItem(
-                                        "Date 1", id="date_one_option"
-                                    ),
-                                    dbc.DropdownMenuItem(
-                                        "Date 2", id="date_two_option"
-                                    ),
-                                    dbc.DropdownMenuItem(
-                                        "Date 3", id="date_three_option"
-                                    ),
-                                ],
-                                className="cardLine",
-                                id="dropdownmenu_status",
-                                style={"margin-right": "8px"},
+                                style={"width": "10vw", "margin-right": "8px"},
                             ),
                             # Searchbar currently has no functionality. This can easily be implemented with callbacks.
                             dbc.Input(
@@ -244,7 +187,7 @@ def serve_layout():
                                 },
                             ),
                         ],
-                        style={"margin": "10px 10px 10px 10px"},
+                        style={"margin": "10px 10px 10px 10px", "display": "flex"},
                     ),
                     # Anomalies datatable, includes styling of the table/cells.
                     dash_table.DataTable(
@@ -293,6 +236,27 @@ def serve_layout():
                                 },
                                 "backgroundColor": "#e37c8b",
                             },
+                            {
+                                "if": {
+                                    "filter_query": '{severity} contains "low"',
+                                    "column_id": "severity",
+                                },
+                                "backgroundColor": "#FFFF00",
+                            },
+                            {
+                                "if": {
+                                    "filter_query": '{severity} contains "medium"',
+                                    "column_id": "severity",
+                                },
+                                "backgroundColor": "#ffa500",
+                            },
+                            {
+                                "if": {
+                                    "filter_query": '{severity} contains "high"',
+                                    "column_id": "severity",
+                                },
+                                "backgroundColor": "#e37c8b",
+                            },
                         ],
                         style_header_conditional=[
                             {
@@ -313,7 +277,7 @@ def serve_layout():
                                 "log_time",
                                 "false_positive",
                                 "anomaly_score",
-                                "...",
+                                "severity" "...",
                             ]
                         ],
                         style_data={
@@ -404,7 +368,17 @@ def calculate_interval(value):
         case "This month":
             return (today, today + pd.offsets.MonthEnd(-1))
         case "All time":
-            return (today, pd.Timestamp(year=1999, month=1, day=1))
+            return ("2024-01-01", pd.Timestamp(year=1999, month=1, day=1))
+
+
+def severity_interval(value):
+    match value:
+        case "Low Severity":
+            return "low"
+        case "Medium Severity":
+            return "medium"
+        case "High Severity":
+            return "high"
 
 
 # Method for updating dataframe
@@ -412,19 +386,30 @@ def calculate_interval(value):
 # When the ok button is clicked we also update the table
 @callback(
     Output("InboxTable", component_property="data"),
-    [Input("interval_picker_dropdown", "value"), Input("OK", "n_clicks")],
+    [
+        Input("interval_picker_dropdown", "value"),
+        Input("OK", "n_clicks"),
+        Input("dropdownmenu_severity", "value"),
+    ],
 )
-def adjust_table(value, n):
+def adjust_table(value, n, sevValue):
     time.sleep(0.1)
-    if value:
-        actualDataDF = getDataDF()
-        interval = calculate_interval(value)
+    logger.debug(sevValue)
 
-        copyDf = actualDataDF[
-            (actualDataDF["log_time"] <= interval[0])
-            & (actualDataDF["log_time"] >= interval[1])
-        ]
-        return copyDf.to_dict(orient="records")
+    if sevValue != "Any Severity":
+        if value:
+            copyDF = getCopyDF(value)
+        else:
+            copyDF = getDataDF()
+
+        severity = severity_interval(sevValue)
+        actualcopyDf = copyDF[(copyDF["severity"] == severity)]
+        return actualcopyDf.to_dict(orient="records")
+
+    if value:
+        copyDF = getCopyDF(value)
+        return copyDF.to_dict(orient="records")
+
     elif n:
         return getDataDF().to_dict(orient="records")
 
@@ -433,16 +418,41 @@ def adjust_table(value, n):
 def getDataDF():
     data = requests.get(get_anomaly_list).json()
     jsonData = json.dumps(data)
-    actualDataDF = pd.read_json(jsonData)
+    actualDataDF = pd.read_json(jsonData, convert_dates=False)
     actualDataDF = actualDataDF.reindex(
         columns=["id", "log_message", "log_time", "false_positive", "anomaly_score"]
     )
     actualDataDF["log_time"] = pd.to_datetime(
         actualDataDF["log_time"], format="%d/%m/%Y", dayfirst=True
     )
+
+    severityList = []
+    for i in actualDataDF.anomaly_score:
+        if i < 0.03:
+            severityList.append("low")
+        elif i < 0.05:
+            severityList.append("medium")
+        else:
+            severityList.append("high")
+    actualDataDF["severity"] = severityList
+
     buttonList = []
     for i in actualDataDF.index:
         buttonList.append("...")
     actualDataDF["..."] = buttonList
+
     pd.options.display.width = 10
+    logger.debug("TEST!")
     return actualDataDF
+
+
+def getCopyDF(value):
+    actualDataDF = getDataDF()
+    interval = calculate_interval(value)
+
+    copyDf = actualDataDF[
+        (actualDataDF["log_time"] <= interval[0])
+        & (actualDataDF["log_time"] >= interval[1])
+    ]
+
+    return copyDf
