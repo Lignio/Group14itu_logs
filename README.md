@@ -20,18 +20,18 @@ Alternatively you can use the make command
 make compose_up
 ```
 Building the images can take a few minutes.
-### Acessing the data generator
+### Accessing the data generator
 By default the data generator listen on localhost:8000 <br>
 Swagger ui is provided on localhost:8000/docs
 
-### Acessing the anomaly detection service
+### Accessing the anomaly detection service
 The anomaly detection rest services listens on localhost:8001 <br>
 Swagger ui is provided on localhost:8001/docs
 
 
-### Running the controller api
-The controller api is run by calling python -m uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload
-from the termial within the controller folder. Here one can manipulate the database and here one has to start log stream. The api listens on localhost:8002 and swapper ui is provided on localhost:8002/docs
+### Accessing the controller api
+The controller listens on localhost:8002 <br>
+Swagger ui is provided on localhost:8002/docs
 
-### Running the Frontend
-Download the required dependendcies and run the app.py in the dashboard with pages folder.
+### Accessing the Frontend
+The Frontend is a website that can be accesssed on localhost:8050

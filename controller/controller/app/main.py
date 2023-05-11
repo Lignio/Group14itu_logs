@@ -96,13 +96,13 @@ def checkFlag():
     return flag
 
 
-@app.get("/anomalies/get_anomaly_list")
+@app.get("/get_anomaly_list")
 def get_anomaly_list():
     return data_loader.get_all_anomalies()
 
 
 # Endpoint for getting a log from the datagenerator, and inserting into the db if it is an anomaly
-@app.post("/anomalies/post_anomaly", response_model=Anomaly)
+@app.post("/post_anomaly", response_model=Anomaly)
 def post_anomaly():
     myLogmessage = requests.get(get_record)
     analysedMessage = requests.get(
@@ -136,14 +136,14 @@ def post_anomaly():
 
 
 # Finds anomly with id uId in db and updates it to match uFalse_Positive
-@app.put("/anomalies/Update_false_positive")
+@app.put("/Update_false_positive")
 def update_false_postive(uId: int, uFalse_Positive: bool):
     anomaly = data_loader.get_Anomaly(uId)
     data_writer.change_false_positive(anomaly, uFalse_Positive)
 
 
 # Starts two threads, one simulates the log stream, the other simulates stream analysis
-@app.get("/anomalies/start_stream")
+@app.get("/start_stream")
 def start_stream():
     t = threading.Thread(target=simulateLogstream)
     t.daemon = True

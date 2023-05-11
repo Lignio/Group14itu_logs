@@ -8,14 +8,25 @@ import requests
 from plotly.graph_objs import *
 import json
 import keyCloakHandler
+from pydantic import BaseSettings
 
+
+class Settings(BaseSettings):
+    controller: str
+
+
+settings = Settings()
+
+controller = settings.controller
+
+get_anomaly_list = f"{controller}/get_anomaly_list"
 # Separate pages need to be registered like this to show up in the page container in app.py
 dash.register_page(__name__, path="/")
 
 
 # Gets the dataframe but without the extra colum of buttons
 def getDataDFSlim():
-    data = requests.get("http://localhost:8002/anomalies/get_anomaly_list").json()
+    data = requests.get(get_anomaly_list).json()
     jsonData = json.dumps(data)
     actualDataDF = pd.read_json(jsonData)
     actualDataDF = actualDataDF.reindex(
