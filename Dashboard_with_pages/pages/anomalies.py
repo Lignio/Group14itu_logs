@@ -10,7 +10,6 @@ from flask import request
 from datetime import datetime, timedelta
 import time
 from pydantic import BaseSettings
-from loguru import logger
 
 
 class Settings(BaseSettings):
@@ -162,6 +161,7 @@ def serve_layout():
                                     "margin-top": "-5px",
                                 },
                             ),
+                            # Dropdown for choosing which severity level to filter by
                             dcc.Dropdown(
                                 [
                                     "Low Severity",
@@ -217,21 +217,22 @@ def serve_layout():
                             "height": "70vh",
                             "marginBottom": "20px",
                         },
-                        tooltip_conditional = [
+                        tooltip_conditional=[
                             {
-                                'if': {'column_id': col},
-                                'value': 'Click to edit this value',
-                                'use_with': 'data'
-                            } for col in ['false_positive', '...']
+                                "if": {"column_id": col},
+                                "value": "Click to edit this value",
+                                "use_with": "data",
+                            }
+                            for col in ["false_positive", "..."]
                         ],
-
-                        css=[{
-                            'selector': '.dash-table-tooltip',
-                            'rule': 'background-color: #141446; color: white'
-                        }],
+                        css=[
+                            {
+                                "selector": ".dash-table-tooltip",
+                                "rule": "background-color: #141446; color: white",
+                            }
+                        ],
                         tooltip_delay=0,
                         tooltip_duration=None,
-                        
                         style_data_conditional=[
                             {
                                 "if": {
@@ -370,7 +371,7 @@ def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
 
 
 def calculate_interval(value):
-    today = pd.Timestamp('today').floor("D")
+    today = pd.Timestamp("today").floor("D")
     match value:
         case "Today":
             return (today, today)
@@ -386,6 +387,7 @@ def calculate_interval(value):
             return ("2024-01-01", pd.Timestamp(year=1999, month=1, day=1))
 
 
+# Matches the input value with which severity to return
 def severity_interval(value):
     match value:
         case "Low Severity":
@@ -409,8 +411,8 @@ def severity_interval(value):
 )
 def adjust_table(value, n, sevValue):
     time.sleep(0.1)
-    logger.debug(sevValue)
 
+    # Checks if it needs to filter by severity and if yes, which severity
     if sevValue != "Any Severity":
         if value:
             copyDF = getCopyDF(value)
@@ -457,10 +459,10 @@ def getDataDF():
     actualDataDF["..."] = buttonList
 
     pd.options.display.width = 10
-    logger.debug("TEST!")
     return actualDataDF
 
 
+# Method for getting updated datatable based on date-filtering
 def getCopyDF(value):
     actualDataDF = getDataDF()
     interval = calculate_interval(value)
