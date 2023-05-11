@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, Input, Output, State, ctx
+from dash import Dash, dcc, html, Input, Output, State, ctx, callback
 import dash
 import pandas as pd
 import plotly.express as px
@@ -53,7 +53,7 @@ app.layout = html.Div(
                 html.Div(
                     children=[
                         html.Div(
-                           html.Div(style={"display":"hidden"})
+                           html.Div(style={"display":"hidden"},id="hiddendiv")
 
                             if "Login" in f" {page['name']}"
                             else
@@ -94,7 +94,7 @@ app.layout = html.Div(
                             )
                             if "Dashboard" in f" {dash.page_registry['pages.login']['name']}" #Makes the pictogram different from dashboard
                             else dbc.Button(
-                                "logout",
+                                "logishss",
                                 id="logInOutBtn",
                                 # n_clicks = 0,
                                 color="secondary",
@@ -190,4 +190,3 @@ def changeLogIn(n_clicks) :
     print("log in pushed")
     return "Log in"
     
-
