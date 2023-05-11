@@ -37,7 +37,7 @@ class Anomaly(BaseModel):
 
 
 # test class for putting false positives into the db. only for testing purpose
-class false_positive_anomoly(BaseModel):
+class false_positive_anomaly(BaseModel):
     log_time: str
     log_message: str
     anomaly_score: float
@@ -119,13 +119,8 @@ def post_anomaly():
         anomaly_score=analysedMessage["anomaly_score"],
     )
     if analysedMessage["anomaly_score"] > 0.02:
-        anomaly = Anomaly(
-            log_time=analysedMessage["log_time"],
-            log_message=analysedMessage["log_message"],
-            anomaly_score=analysedMessage["anomaly_score"],
-        )
         is_positive = compare_false_positive(
-            analysedMessage.log_message
+            anomaly.log_message
         )  # checks if anomoly is false positive
         if is_positive == True:
             return anomaly
@@ -135,7 +130,7 @@ def post_anomaly():
     return anomaly
 
 
-# Finds anomly with id uId in db and updates it to match uFalse_Positive
+# Finds anomaly with id uId in db and updates it to match uFalse_Positive
 @app.put("/Update_false_positive")
 def update_false_postive(uId: int, uFalse_Positive: bool):
     anomaly = data_loader.get_Anomaly(uId)
