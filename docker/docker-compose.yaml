@@ -65,6 +65,14 @@ services:
     ports:
       - "8001:8001"
 
-
+  keycloak:
+        container_name: local_keycloak
+        environment:
+          KEYCLOAK_ADMIN: admin
+          KEYCLOAK_ADMIN_PASSWORD: admin
+        image: quay.io/keycloak/keycloak:latest
+        command: start-dev
+        ports:
+          - "8080:8080"
 
    
