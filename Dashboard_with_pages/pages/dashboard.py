@@ -7,7 +7,6 @@ import dash_bootstrap_components as dbc
 import requests
 from plotly.graph_objs import *
 import json
-import time
 from pydantic import BaseSettings
 
 
@@ -24,6 +23,31 @@ get_anomaly_list = f"{controller}/get_anomaly_list"
 dash.register_page(__name__, path="/")
 
 
+class DataContainer:
+    data: pd.DataFrame
+    timeFilteredData: pd.DataFrame
+
+
+dataContainer = DataContainer()
+
+
+def calculate_interval(value):
+    today = pd.Timestamp("today").floor("D")
+    match value:
+        case "Today":
+            return (today, today)
+        case "Yesterday":
+            return (today + pd.offsets.Day(-1), today + pd.offsets.Day(-1))
+        case "Last two days":
+            return (today, today + pd.offsets.Day(-1))
+        case "Last 7 days":
+            return (today, today + pd.offsets.Day(-6))
+        case "This month":
+            return (today, today + pd.offsets.MonthEnd(-1))
+        case "All time":
+            return (today, pd.Timestamp(year=1999, month=1, day=1))
+
+
 # Gets the dataframe but without the extra colum of buttons
 def getDataDFSlim():
     data = requests.get(get_anomaly_list).json()
@@ -32,12 +56,25 @@ def getDataDFSlim():
     actualDataDF = actualDataDF.reindex(
         columns=["id", "log_message", "log_time", "false_positive", "anomaly_score"]
     )
+    actualDataDF["log_time"] = pd.to_datetime(
+        actualDataDF["log_time"], format="%d/%m/%Y", dayfirst=True
+    )
     return actualDataDF
+
+
+def getTimeFilteredDF(df, timeInterval):
+    return df[(df["log_time"] <= timeInterval[0]) & (df["log_time"] >= timeInterval[1])]
+
+
+dataContainer.data = getDataDFSlim()
+dataContainer.timeFilteredData = getTimeFilteredDF(
+    dataContainer.data, calculate_interval("Today")
+)
 
 
 # Gets the dataframe but reduced to only contain id, log_message and anomaly_score
 def getDataDFInbox():
-    data = getDataDFSlim()
+    data = dataContainer.data
     dataFrame = data.reindex(columns=["id", "log_message", "anomaly_score"])
     dataFrame = dataFrame.rename(columns={"anomaly_score": "a_score"})
     return dataFrame
@@ -46,7 +83,7 @@ def getDataDFInbox():
 # Creates and returns a list of all anomaly_scores in the dataframe
 def getAnomalyScoreList():
     anomalyScoreList = []
-    for i in getDataDFSlim().anomaly_score:
+    for i in dataContainer.timeFilteredData.anomaly_score:
         anomalyScoreList.append(i)
     return anomalyScoreList
 
@@ -59,7 +96,7 @@ def getAnomalyByDate():
 
     helperMap = {}
 
-    for i in getDataDFSlim().log_time:
+    for i in dataContainer.data.log_time:
         if i in helperMap:
             helperMap[i] = helperMap[i] + 1
         else:
@@ -77,14 +114,17 @@ def getAnomalyByDate():
 # Creates and returns a list of all false positives
 def getListOfFalsePostives():
     data = []
-    for i in getDataDFSlim().false_positive:
+    for i in dataContainer.timeFilteredData.false_positive:
         if i == True:
             data.append(i)
     return data
 
 
-def procentOfFalsePositives():
-    return round(((len(getListOfFalsePostives())) / (len(getDataDFSlim()))) * 100, 2)
+def percentOfFalsePositives():
+    return round(
+        ((len(getListOfFalsePostives())) / (len(dataContainer.timeFilteredData))) * 100,
+        2,
+    )
 
 
 # Counts and partitions the anomaly scores in the anomalyScore list into a list used for the piechart
@@ -104,7 +144,8 @@ def countvalues():
 # Entire html is now moved into a serve_layout() method which allows for reloading data when refreshing the page
 def serve_layout():
     # lists used for creating graphs
-    lst1 = getDataDFSlim().id
+    timeInterval = calculate_interval("Today")
+    lst1 = dataContainer.timeFilteredData.id
     lst2 = getListOfFalsePostives()
 
     # used for making the inbox table
@@ -122,6 +163,7 @@ def serve_layout():
 
     return html.Div(
         children=[
+            html.Div(id="hidden-div", style={"display": "none"}),
             html.Div(
                 id="Main-panel",
                 children=[
@@ -303,9 +345,10 @@ def serve_layout():
                                                         children=[
                                                             html.H2(
                                                                 str(
-                                                                    procentOfFalsePositives()
+                                                                    percentOfFalsePositives()
                                                                 )
                                                                 + "%",
+                                                                id="false_positive_percent",
                                                                 className="GreenCard bi bi-graph-up cardText card-subtitle cardLine FontBold IconBold",
                                                                 style={
                                                                     "float": "right",
@@ -485,7 +528,7 @@ def serve_layout():
                     # Style customization for the whole page container:
                 ],
                 style={"width": "85vw", "margin-left": "30px"},
-            )
+            ),
         ],
         style={
             "display": "flex",
@@ -500,21 +543,18 @@ def serve_layout():
 layout = serve_layout
 
 
-def calculate_interval(value):
-    today = pd.Timestamp("today").floor("D")
-    match value:
-        case "Today":
-            return (today, today)
-        case "Yesterday":
-            return (today + pd.offsets.Day(-1), today + pd.offsets.Day(-1))
-        case "Last two days":
-            return (today, today + pd.offsets.Day(-1))
-        case "Last 7 days":
-            return (today, today + pd.offsets.Day(-6))
-        case "This month":
-            return (today, today + pd.offsets.MonthEnd(-1))
-        case "All time":
-            return (today, pd.Timestamp(year=1999, month=1, day=1))
+@callback(
+    Output("hidden-div", "children"),
+    [
+        Input("interval_selector", "value"),
+        Input("count_update_interval", "n_intervals"),
+    ],
+)
+def update_dataContainer(value, unused):
+    dataContainer.data = getDataDFSlim()
+    timeInterval = calculate_interval(value)
+    dataContainer.timeFilteredData = getTimeFilteredDF(dataContainer.data, timeInterval)
+    return 0
 
 
 # Method for updating dataframe
@@ -522,21 +562,14 @@ def calculate_interval(value):
 # When the ok button is clicked we also update the table
 @callback(
     Output("InboxTable", component_property="data"),
-    [
-        Input("interval_selector", "value"),
-        Input("count_update_interval", "n_intervals"),
-    ],
+    Input("count_update_interval", "n_intervals"),
 )
-def adjust_table(value, interval):
-    time.sleep(0.1)
-    actualDataDF = getDataDFSlim()
-    interval = calculate_interval(value)
-
-    copyDf = actualDataDF[
-        (actualDataDF["log_time"] <= interval[0])
-        & (actualDataDF["log_time"] >= interval[1])
-    ]
-    return copyDf.to_dict(orient="records")
+def adjust_table(unused):
+    dataFrame = dataContainer.data.reindex(
+        columns=["id", "log_message", "anomaly_score"]
+    )
+    dataFrame = dataFrame.rename(columns={"anomaly_score": "a_score"})
+    return dataFrame.to_dict(orient="records")
 
 
 # Call backs for updating graphs
@@ -544,7 +577,7 @@ def adjust_table(value, interval):
     Output("waveGraph", component_property="figure"),
     Input("graph_update_interval", "n_intervals"),
 )
-def update_wavegraph(intervals):
+def update_wavegraph(unused):
     return px.line(getAnomalyByDate(), x="Date", y="Amount").update_layout(
         margin=dict(l=20, r=20, t=30, b=20)
     )
@@ -552,26 +585,54 @@ def update_wavegraph(intervals):
 
 @callback(
     Output("piechart", component_property="figure"),
-    Input("graph_update_interval", "n_intervals"),
+    [
+        Input("graph_update_interval", "n_intervals"),
+        Input("interval_selector", "value"),
+    ],
 )
-def update_piechart(intervals):
+def update_piechart(unused, value):
     return px.pie(
-        values=countvalues(),
+        values=countvalues(calculate_interval(value)),
         names=["0.02 - 0.024", "0.024 - 0.026", ">0.026"],
         title="",  # Title is blank
     ).update_layout(margin=dict(l=20, r=20, t=30, b=20))
 
 
 @callback(
-    Output("anomaly_count", "children"), Input("count_update_interval", "n_intervals")
+    Output("anomaly_count", "children"),
+    [
+        Input("count_update_interval", "n_intervals"),
+        Input("interval_selector", "value"),
+    ],
 )
-def update_anomaly_count(interval):
-    return len(getDataDFSlim().id)
+def update_anomaly_count(unused, value):
+    timeInterval = calculate_interval(value)
+
+    return len(
+        dataContainer.data[
+            (dataContainer.data["log_time"] <= timeInterval[0])
+            & (dataContainer.data["log_time"] >= timeInterval[1])
+        ].id
+    )
 
 
 @callback(
     Output("false_positive_count", "children"),
-    Input("count_update_interval", "n_intervals"),
+    [
+        Input("interval_selector", "value"),
+        Input("count_update_interval", "n_intervals"),
+    ],
 )
-def update_false_positive_count(interval):
-    return len(getListOfFalsePostives())
+def update_false_positive_count(value, unused):
+    return len(getListOfFalsePostives(calculate_interval(value)))
+
+
+@callback(
+    Output("false_positive_percent", "children"),
+    [
+        Input("interval_selector", "value"),
+        Input("count_update_interval", "n_intervals"),
+    ],
+)
+def update_false_positive_count(value, unused):
+    return percentOfFalsePositives(calculate_interval(value))
