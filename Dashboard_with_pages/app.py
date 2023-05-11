@@ -35,6 +35,7 @@ app.layout = html.Div(
         html.Div(
             id="Sidebar",
             children=[
+                dcc.Location(id="loc2"),
                 dcc.Interval(id="interval-component", interval=1 * 5000, n_intervals=0),
                 html.Div(
                     children=[
@@ -53,7 +54,7 @@ app.layout = html.Div(
                 html.Div(
                     children=[
                         html.Div(
-                           html.Div(style={"display":"hidden"})
+                           html.Div(style={"display":"hidden"},id="hiddendiv")
                             if "Login" in f" {page['name']}"
                             else
                             dbc.Button(
@@ -170,9 +171,19 @@ def check_for_new_anomalies(is_open):
     Input('logInOutBtn', 'n_clicks')
 )
 def changeLogIn(n_clicks) :
-    if keyCloakHandler.CurrentUser is None:
-        return "Log in"
-    return "Log out"
+    if keyCloakHandler.isUserLoggedIn:
+        return "Log out"
+    return "Log in"
+
+@callback(
+    Output('loc2','href'),
+    Input('logInOutBtn', 'children'),
+    prevent_initial_call = True
+)
+def logout(value):
+    if value == "Log out":
+        keyCloakHandler.currentUserSession = None
+        return 'http://127.0.0.1:8050/login'
 
 
 # Debug true allows for hot reloading while writing code.

@@ -43,6 +43,12 @@ def logoutUser(username, userpass):
     keycloak_openid.logout(getRefreshTokenForUser(username, userpass)
 )
 
+def isUserLoggedIn():
+    if CurrentUser is None:
+         return False
+    else:
+        return True
+
 # Admin client is used to gain access to a users groups and roles. Is done with user_id, not username.
 # Example userID: 47c7a85c-0764-4a20-bbf6-ba7fe2860e26
 # UserID is available to see in the keycloak admin console, but is also returned with userinfo sa in
