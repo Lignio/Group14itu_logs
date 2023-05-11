@@ -37,8 +37,17 @@ def getDataDFSlim():
 # Gets the dataframe but reduced to only contain id, log_message and anomaly_score
 def getDataDFInbox():
     data = getDataDFSlim()
-    dataFrame = data.reindex(columns=["id", "log_message", "anomaly_score"])
-    dataFrame = dataFrame.rename(columns={"anomaly_score": "a_score"})
+    # adds severity columnn
+    severityList = []
+    for i in data.anomaly_score:
+        if i < 0.03:
+            severityList.append("low")
+        elif i < 0.05:
+            severityList.append("medium")
+        else:
+            severityList.append("high")
+    data["severity"] = severityList
+    dataFrame = data.reindex(columns=["id", "log_message", "severity"])
     return dataFrame
 
 
@@ -374,7 +383,28 @@ def serve_layout():
                                                     {
                                                         "if": {"column_id": "a_score"},
                                                         "format": {"specifier": ".4f"},
-                                                    }
+                                                    },
+                                                    {
+                                                        "if": {
+                                                            "filter_query": '{severity} contains "low"',
+                                                            "column_id": "severity",
+                                                        },
+                                                        "backgroundColor": "#FFFF00",
+                                                    },
+                                                    {
+                                                        "if": {
+                                                            "filter_query": '{severity} contains "medium"',
+                                                            "column_id": "severity",
+                                                        },
+                                                        "backgroundColor": "#ffa500",
+                                                    },
+                                                    {
+                                                        "if": {
+                                                            "filter_query": '{severity} contains "high"',
+                                                            "column_id": "severity",
+                                                        },
+                                                        "backgroundColor": "#e37c8b",
+                                                    },
                                                 ],
                                             ),
                                         ],
