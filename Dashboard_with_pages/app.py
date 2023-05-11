@@ -171,7 +171,9 @@ def check_for_new_anomalies(is_open):
     Input('logInOutBtn', 'n_clicks')
 )
 def changeLogIn(n_clicks) :
-    if keyCloakHandler.isUserLoggedIn:
+    if keyCloakHandler.CurrentUser is None :
+        return "log in"
+    elif keyCloakHandler.CurrentUser.isLoggedIn():
         return "Log out"
     return "Log in"
 
@@ -182,8 +184,9 @@ def changeLogIn(n_clicks) :
 )
 def logout(value):
     if value == "Log out":
-        keyCloakHandler.currentUserSession = None
+        keyCloakHandler.CurrentUser.logout()
         return 'http://127.0.0.1:8050/login'
+    # return 'http://127.0.0.1:8050'
 
 
 # Debug true allows for hot reloading while writing code.

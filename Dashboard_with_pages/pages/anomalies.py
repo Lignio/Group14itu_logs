@@ -16,7 +16,7 @@ dash.register_page(__name__)
 
 # Entire html is now moved into a serve_layout() method which allows for reloading data when refreshing the page.
 def serve_layout():
-    if keyCloakHandler.CurrentUser is not None :
+    if keyCloakHandler.CurrentUser.isLoggedIn() :
         actualDataDF = getDataDF()
         # Render the layout.
         return html.Div(

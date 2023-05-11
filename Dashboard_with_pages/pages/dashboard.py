@@ -71,7 +71,7 @@ def countvalues():
 # Entire html is now moved into a serve_layout() method which allows for reloading data when refreshing the page
 def serve_layout():
     # lists used for creating graphs
-    if keyCloakHandler.CurrentUser is not None :
+    if keyCloakHandler.CurrentUser.isLoggedIn() :
         lst1 = getDataDFSlim().id
         lst2 = getListOfFalsePostives()
 
