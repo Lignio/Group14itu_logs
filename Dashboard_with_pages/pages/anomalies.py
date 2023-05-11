@@ -129,7 +129,6 @@ def serve_layout():
                                             id="OK",
                                             className="ms-auto",
                                             n_clicks=0,
-                                            href="/anomalies/",
                                         )
                                     ),
                                     dbc.Button(
@@ -191,7 +190,7 @@ def serve_layout():
                     ),
                     # Anomalies datatable, includes styling of the table/cells.
                     dash_table.DataTable(
-                        id="InboxTable",
+                        id="anomaly_table",
                         columns=[
                             {
                                 "name": i,
@@ -331,12 +330,12 @@ layout = serve_layout
 @callback(
     Output("modal", "is_open"),
     [
-        Input("InboxTable", "active_cell"),
+        Input("anomaly_table", "active_cell"),
         Input("close", "n_clicks"),
         Input("OK", "n_clicks"),
         Input("demo-dropdown", "value"),
     ],
-    [State("InboxTable", "derived_viewport_data"), State("modal", "is_open")],
+    [State("anomaly_table", "derived_viewport_data"), State("modal", "is_open")],
 )
 
 # This method handles what pressing on the '...' button does.
@@ -402,7 +401,7 @@ def severity_interval(value):
 # When an option is selected in the dropdown the table is updated to fit the filter
 # When the ok button is clicked we also update the table
 @callback(
-    Output("InboxTable", component_property="data"),
+    Output("anomaly_table", component_property="data"),
     [
         Input("interval_picker_dropdown", "value"),
         Input("OK", "n_clicks"),
