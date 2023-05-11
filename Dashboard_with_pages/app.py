@@ -179,11 +179,12 @@ def changeLogIn(n_clicks) :
 
 @callback(
     Output('loc2','href'),
-    Input('logInOutBtn', 'children'),
+    Input('logInOutBtn', 'n_clicks'),
     prevent_initial_call = True
 )
 def logout(value):
-    if value == "Log out":
+    if value != 0:
+        print("logged out user")
         keyCloakHandler.CurrentUser.logout()
         return 'http://127.0.0.1:8050/login'
     # return 'http://127.0.0.1:8050'
