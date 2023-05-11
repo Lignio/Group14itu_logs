@@ -21,7 +21,7 @@ def serve_layout():
         # Render the layout.
         return html.Div(
             children=[
-                dcc.Location(id="loc"),
+                dcc.Location(id="locAnomaly"),
                 html.Div(
                     # Anomalies page title
                     html.H1("Anomalies", className="FontBold"),
@@ -333,7 +333,7 @@ def serve_layout():
     else :
         return html.Div(
             children=[
-                dcc.Location(id="loc"),
+                dcc.Location(id="locAnomaly"),
                 html.Div(
                     # Anomalies page title
                     id="page-content",
@@ -444,8 +444,8 @@ def getDataDF():
     return actualDataDF
 
 @callback(
-    Output('loc', 'href'),
+    Output('locAnomaly', 'href'),
     Input('page-content', 'children'),
     allow_duplicate=True)
-def toLogin(test):
+def toLogin(input):
     return "http://127.0.0.1:8050/login"

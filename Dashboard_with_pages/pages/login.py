@@ -60,9 +60,7 @@ layout= serve_layout()
     prevent_initial_call=True,
 )
 def prints(n,userN,userP):
-    print(userN)
     keyCloakHandler.CurrentUser = keyCloakHandler.currentUserSession(userN, userP)
-    print(keyCloakHandler.CurrentUser)
     return "http://127.0.0.1:8050/"
 
 
