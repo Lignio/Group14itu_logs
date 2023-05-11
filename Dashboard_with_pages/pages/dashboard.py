@@ -61,6 +61,15 @@ def getDataDFSlim():
     actualDataDF["log_time"] = pd.to_datetime(
         actualDataDF["log_time"], format="%d/%m/%Y", dayfirst=True
     )
+    severityList = []
+    for i in actualDataDF.anomaly_score:
+        if i < 0.03:
+            severityList.append("low")
+        elif i < 0.05:
+            severityList.append("medium")
+        else:
+            severityList.append("high")
+    actualDataDF["severity"] = severityList
     return actualDataDF
 
 
@@ -79,15 +88,7 @@ dataContainer.latestInterval = calculate_interval("Today")
 # Gets the dataframe but reduced to only contain id, log_message and anomaly_score
 def getDataDFInbox():
     data = dataContainer.data
-    severityList = []
-    for i in data.anomaly_score:
-        if i < 0.03:
-            severityList.append("low")
-        elif i < 0.05:
-            severityList.append("medium")
-        else:
-            severityList.append("high")
-    data["severity"] = severityList
+
     dataFrame = data.reindex(columns=["id", "log_message", "severity"])
     return dataFrame
 
@@ -131,8 +132,12 @@ def getListOfFalsePostives():
 
 # Calculates the percentage of anomalies marked as false-positives
 def percentOfFalsePositives():
+    amountOfData = len(dataContainer.timeFilteredData)
+    if amountOfData == 0:
+        return 0
+
     return round(
-        ((len(getListOfFalsePostives())) / (len(dataContainer.timeFilteredData))) * 100,
+        ((len(getListOfFalsePostives())) / (amountOfData)) * 100,
         2,
     )
 
@@ -605,10 +610,7 @@ def update_dataContainer(value, unused):
     Input("count_update_interval", "n_intervals"),
 )
 def adjust_table(unused):
-    dataFrame = dataContainer.data.reindex(
-        columns=["id", "log_message", "anomaly_score"]
-    )
-    dataFrame = dataFrame.rename(columns={"anomaly_score": "a_score"})
+    dataFrame = dataContainer.data.reindex(columns=["id", "log_message", "severity"])
     return dataFrame.to_dict(orient="records")
 
 
