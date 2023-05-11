@@ -54,6 +54,7 @@ app.layout = html.Div(
                     children=[
                         html.Div(
                            html.Div(style={"display":"hidden"})
+
                             if "Login" in f" {page['name']}"
                             else
                             dbc.Button(
