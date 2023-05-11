@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, Input, Output, callback, dash_table
+from dash import Dash, dcc, html, Input, Output, callback, dash_table, ctx
 import pandas as pd
 import dash
 import plotly.express as px
@@ -23,9 +23,11 @@ get_anomaly_list = f"{controller}/get_anomaly_list"
 dash.register_page(__name__, path="/")
 
 
+# centralized container for the dataframes used on the dashboard
 class DataContainer:
     data: pd.DataFrame
     timeFilteredData: pd.DataFrame
+    latestInterval: tuple
 
 
 dataContainer = DataContainer()
@@ -66,10 +68,12 @@ def getTimeFilteredDF(df, timeInterval):
     return df[(df["log_time"] <= timeInterval[0]) & (df["log_time"] >= timeInterval[1])]
 
 
+# initializing the datacontainer
 dataContainer.data = getDataDFSlim()
 dataContainer.timeFilteredData = getTimeFilteredDF(
     dataContainer.data, calculate_interval("Today")
 )
+dataContainer.latestInterval = calculate_interval("Today")
 
 
 # Gets the dataframe but reduced to only contain id, log_message and anomaly_score
@@ -108,9 +112,6 @@ def getAnomalyByDate():
     return anomalyDateList
 
 
-# def getAnomaliesInPeriode():
-
-
 # Creates and returns a list of all false positives
 def getListOfFalsePostives():
     data = []
@@ -120,6 +121,7 @@ def getListOfFalsePostives():
     return data
 
 
+# Calculates the percentage of anomalies marked as false-positives
 def percentOfFalsePositives():
     return round(
         ((len(getListOfFalsePostives())) / (len(dataContainer.timeFilteredData))) * 100,
@@ -144,7 +146,6 @@ def countvalues():
 # Entire html is now moved into a serve_layout() method which allows for reloading data when refreshing the page
 def serve_layout():
     # lists used for creating graphs
-    timeInterval = calculate_interval("Today")
     lst1 = dataContainer.timeFilteredData.id
     lst2 = getListOfFalsePostives()
 
@@ -543,6 +544,7 @@ def serve_layout():
 layout = serve_layout
 
 
+# Callback that updates the datacontainer with new data from the logstream
 @callback(
     Output("hidden-div", "children"),
     [
@@ -551,15 +553,24 @@ layout = serve_layout
     ],
 )
 def update_dataContainer(value, unused):
-    dataContainer.data = getDataDFSlim()
-    timeInterval = calculate_interval(value)
-    dataContainer.timeFilteredData = getTimeFilteredDF(dataContainer.data, timeInterval)
+    trigger = ctx.triggered_id
+    if trigger == "interval_selector":
+        # Update only the timefiltered dataframe if the interval selector is
+        # triggering the callback
+        timeInterval = calculate_interval(value)
+        dataContainer.timeFilteredData = getTimeFilteredDF(
+            dataContainer.data, timeInterval
+        )
+        dataContainer.latestInterval = timeInterval
+    else:
+        dataContainer.data = getDataDFSlim()
+        dataContainer.timeFilteredData = getTimeFilteredDF(
+            dataContainer.data, dataContainer.latestInterval
+        )
     return 0
 
 
-# Method for updating dataframe
-# When an option is selected in the dropdown the table is updated to fit the filter
-# When the ok button is clicked we also update the table
+# Method for updating the inbox
 @callback(
     Output("InboxTable", component_property="data"),
     Input("count_update_interval", "n_intervals"),
@@ -572,7 +583,7 @@ def adjust_table(unused):
     return dataFrame.to_dict(orient="records")
 
 
-# Call backs for updating graphs
+# Callbacks below are for updating the graphs
 @callback(
     Output("waveGraph", component_property="figure"),
     Input("graph_update_interval", "n_intervals"),
@@ -592,12 +603,14 @@ def update_wavegraph(unused):
 )
 def update_piechart(unused, value):
     return px.pie(
-        values=countvalues(calculate_interval(value)),
+        values=countvalues(),
         names=["0.02 - 0.024", "0.024 - 0.026", ">0.026"],
         title="",  # Title is blank
     ).update_layout(margin=dict(l=20, r=20, t=30, b=20))
 
 
+# Callbacks below are for updating the numbers and percentages on the dashboard
+# these are all triggered by an interval component
 @callback(
     Output("anomaly_count", "children"),
     [
@@ -606,14 +619,7 @@ def update_piechart(unused, value):
     ],
 )
 def update_anomaly_count(unused, value):
-    timeInterval = calculate_interval(value)
-
-    return len(
-        dataContainer.data[
-            (dataContainer.data["log_time"] <= timeInterval[0])
-            & (dataContainer.data["log_time"] >= timeInterval[1])
-        ].id
-    )
+    return len(dataContainer.timeFilteredData)
 
 
 @callback(
@@ -624,7 +630,7 @@ def update_anomaly_count(unused, value):
     ],
 )
 def update_false_positive_count(value, unused):
-    return len(getListOfFalsePostives(calculate_interval(value)))
+    return len(getListOfFalsePostives())
 
 
 @callback(
@@ -634,5 +640,5 @@ def update_false_positive_count(value, unused):
         Input("count_update_interval", "n_intervals"),
     ],
 )
-def update_false_positive_count(value, unused):
-    return percentOfFalsePositives(calculate_interval(value))
+def update_false_positive_percent(value, unused):
+    return str(percentOfFalsePositives()) + "%"
