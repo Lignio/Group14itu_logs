@@ -3,6 +3,8 @@ import pika
 import json
 import threading
 
+from datetime import datetime
+
 from typing import Union
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -35,11 +37,19 @@ channel = connection.channel()
 #declare exchange for sending messages to server
 channel.exchange_declare(exchange="datagenerator", exchange_type="direct")
 
+connection.close()
+
 
 # Method for simulating getting constant steam of messages and inserting them into the queue
 def simulateLogstream():
+    print("time ", datetime.now().strftime("%H:%M:%S"))
     i = 0
-    while i<3000:
+
+    #connecting to rabbitmqserver
+    connection = pika.BlockingConnection(pika.ConnectionParameters("rmq", 5672))
+    channel = connection.channel()
+
+    while i<30000:
         logmessage = json.dumps(data_loader.get_log_message(random.choice(ids)).log_message)
         channel.basic_publish(
              exchange="datagenerator", routing_key="datagenerator.found", body=logmessage
@@ -49,11 +59,16 @@ def simulateLogstream():
 
 @app.get("/rabbitmqTest/")
 def publish():
+    #connecting to rabbitmqserver
+    connection = pika.BlockingConnection(pika.ConnectionParameters("rmq", 5672))
+    channel = connection.channel()
+
     #sendeing a random log to anomaly detector to be analysed
     logmessage = json.dumps(data_loader.get_log_message(random.choice(ids)).log_message)
     channel.basic_publish(
         exchange="datagenerator", routing_key="datagenerator.found", body=logmessage
     )
+    connection.close()
     return "success"
 
 # Starts two threads, one simulates the log stream, the other simulates stream analysis

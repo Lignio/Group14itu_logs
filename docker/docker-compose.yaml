@@ -85,8 +85,8 @@ services:
       - rabbitmq
       - controller
 
-  #anomaly_detector2:
-   # <<: *anomaly_detector
+  anomaly_detector2:
+    <<: *anomaly_detector
 
   rabbitmq:
     image: rabbitmq:3-management
