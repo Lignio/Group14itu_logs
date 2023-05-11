@@ -9,7 +9,7 @@ The database is used as a backend for storing log messages for the data generato
 ### A data generator REST service
 The REST services provides log messages upon make a request.
 ### A REST endpoint for the anomaly detection model
-The REST endpoint for anomaly detection takes a log message as input and predicts if the message is an anomaly. Optinally a threshold for anomalies can be provided.
+The REST endpoint for anomaly detection takes a log message as input and predicts if the message is an anomaly. Optimally a threshold for anomalies can be provided.
 ## Running the code
 From the root of the project (same folder as the readme), run
 ```bash
@@ -35,3 +35,6 @@ Swagger ui is provided on localhost:8002/docs
 
 ### Accessing the Frontend
 The Frontend is a website that can be accesssed on localhost:8050
+
+### Bugs and other issues
+Currently the dropdown for severity on the Anomlies page does not display properly on firefox.
