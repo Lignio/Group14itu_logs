@@ -60,7 +60,6 @@ def countvalues():
             anomalyToPiechart[1] += 1
         else:
             anomalyToPiechart[2] += 1
-    print(anomalyToPiechart)
     return anomalyToPiechart
 
 
@@ -514,5 +513,5 @@ def update_dropdownmenu_label(n1, n2, n3, n4, n5, n6):
     Output('locDash', 'href'),
     Input('page-dash', 'children'),
     allow_duplicate=True)
-def toLogin(test):
+def toLogin(input):
     return "http://127.0.0.1:8050/login"
