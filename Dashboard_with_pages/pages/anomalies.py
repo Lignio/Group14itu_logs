@@ -364,12 +364,12 @@ layout = serve_layout
 @callback(
     Output("modal", "is_open"),
     [
-        Input("InboxTable", "active_cell"),
+        Input("anomaly_table", "active_cell"),
         Input("close", "n_clicks"),
         Input("OK", "n_clicks"),
         Input("demo-dropdown", "value"),
     ],
-    [State("InboxTable", "derived_viewport_data"), State("modal", "is_open")],
+    [State("anomaly_table", "derived_viewport_data"), State("modal", "is_open")],
 )
 
 # This method handles what pressing on the '...' button does.
@@ -397,7 +397,7 @@ def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
             return not is_open
         if "close" == ctx.triggered_id:
             return not is_open
-        elif col == "...":
+        elif (col == "...") or (col == "false_positive"):
             return not is_open
         elif col == "log_message":
             return is_open
@@ -417,27 +417,49 @@ def calculate_interval(value):
         case "This month":
             return (today, today + pd.offsets.MonthEnd(-1))
         case "All time":
-            return (today, pd.Timestamp(year=1999, month=1, day=1))
+            return ("2024-01-01", pd.Timestamp(year=1999, month=1, day=1))
+
+
+# Matches the input value with which severity to return
+def severity_interval(value):
+    match value:
+        case "Low Severity":
+            return "low"
+        case "Medium Severity":
+            return "medium"
+        case "High Severity":
+            return "high"
 
 
 # Method for updating dataframe
 # When an option is selected in the dropdown the table is updated to fit the filter
 # When the ok button is clicked we also update the table
 @callback(
-    Output("InboxTable", component_property="data"),
-    [Input("interval_picker_dropdown", "value"), Input("OK", "n_clicks")],
+    Output("anomaly_table", component_property="data"),
+    [
+        Input("interval_picker_dropdown", "value"),
+        Input("OK", "n_clicks"),
+        Input("dropdownmenu_severity", "value"),
+    ],
 )
-def adjust_table(value, n):
+def adjust_table(value, n, sevValue):
     time.sleep(0.1)
-    if value:
-        actualDataDF = getDataDF()
-        interval = calculate_interval(value)
 
-        copyDf = actualDataDF[
-            (actualDataDF["log_time"] <= interval[0])
-            & (actualDataDF["log_time"] >= interval[1])
-        ]
-        return copyDf.to_dict(orient="records")
+    # Checks if it needs to filter by severity and if yes, which severity
+    if sevValue != "Any Severity":
+        if value:
+            copyDF = getCopyDF(value)
+        else:
+            copyDF = getDataDF()
+
+        severity = severity_interval(sevValue)
+        actualcopyDf = copyDF[(copyDF["severity"] == severity)]
+        return actualcopyDf.to_dict(orient="records")
+
+    if value:
+        copyDF = getCopyDF(value)
+        return copyDF.to_dict(orient="records")
+
     elif n:
         return getDataDF().to_dict(orient="records")
 
@@ -446,17 +468,29 @@ def adjust_table(value, n):
 def getDataDF():
     data = requests.get(get_anomaly_list).json()
     jsonData = json.dumps(data)
-    actualDataDF = pd.read_json(jsonData)
+    actualDataDF = pd.read_json(jsonData, convert_dates=False)
     actualDataDF = actualDataDF.reindex(
         columns=["id", "log_message", "log_time", "false_positive", "anomaly_score"]
     )
     actualDataDF["log_time"] = pd.to_datetime(
         actualDataDF["log_time"], format="%d/%m/%Y", dayfirst=True
     )
+
+    severityList = []
+    for i in actualDataDF.anomaly_score:
+        if i < 0.03:
+            severityList.append("low")
+        elif i < 0.05:
+            severityList.append("medium")
+        else:
+            severityList.append("high")
+    actualDataDF["severity"] = severityList
+
     buttonList = []
     for i in actualDataDF.index:
         buttonList.append("...")
     actualDataDF["..."] = buttonList
+
     pd.options.display.width = 10
     return actualDataDF
 
@@ -466,3 +500,15 @@ def getDataDF():
     allow_duplicate=True)
 def toLogin(input):
     return "http://127.0.0.1:8050/login"
+
+# Method for getting updated datatable based on date-filtering
+def getCopyDF(value):
+    actualDataDF = getDataDF()
+    interval = calculate_interval(value)
+
+    copyDf = actualDataDF[
+        (actualDataDF["log_time"] <= interval[0])
+        & (actualDataDF["log_time"] >= interval[1])
+    ]
+
+    return copyDf

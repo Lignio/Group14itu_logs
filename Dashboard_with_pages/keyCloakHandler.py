@@ -1,4 +1,5 @@
-from keycloak import KeycloakOpenID, keycloak_admin,KeycloakAdmin
+from keycloak import KeycloakOpenID, keycloak_admin, KeycloakAdmin
+
 
 #--- Currently logged in user ---#
 CurrentUser = None
