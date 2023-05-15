@@ -31,7 +31,7 @@ h1, h2, h3, h4, h5, h6, P {
 
 /* For item that needs to be on the same line on a card */
 .cardLine {
-    display: inline-block;
+    display: inline;
 
 }
 
@@ -64,7 +64,7 @@ h1, h2, h3, h4, h5, h6, P {
 .FontBold {
     font-family: Inter, sans-serif;
     font-weight: 501;
-    
+
 }
 
 /* Makes icon bolder */
@@ -112,7 +112,7 @@ h1, h2, h3, h4, h5, h6, P {
 #alertMsg {
     position: fixed;
     bottom:0;
-    right: 15px;
+    left: 15px;
     color: black;
     border-style: solid;
     border-color: red;
@@ -132,4 +132,26 @@ h1, h2, h3, h4, h5, h6, P {
 .alertBtn:hover {
     background-color: #1f2d60;
     border: none;
+}
+.centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80vw;
+    height: 100vh;
+
+}
+
+.loginCard {
+    max-width: 60%;
+    height: 60vh;
+    border: #1f2d60;
+    border-radius: 5px;
+    background-color: white;
+    box-shadow: 7px 11px 20px -1px rgba(0,0,0,0.54);
+
+    }
+
+.SystematicGradient {
+    background: #f0f3f6
 }

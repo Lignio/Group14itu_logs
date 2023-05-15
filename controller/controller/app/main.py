@@ -26,12 +26,6 @@ get_prediction = f"{anomaly_detector}/logs/getPredict"
 get_LogList = f"{data_generator}/logs/LogList"
 get_record = f"{data_generator}/logs/get_record"
 
-class Counter():
-    counter: int
-
-C = Counter()
-C.counter = 0
-
 
 # class representing an anomaly.
 class Anomaly(BaseModel):
@@ -115,19 +109,15 @@ def post_anomaly(log_message: str, log_time: str, anomaly_score: float):
 
     is_positive = compare_false_positive(
         anomaly.log_message
-    )  # checks if anomaly is a false positive
+    )  # Checks if anomaly is a false positive
     if is_positive == True:
         return anomaly
-    # anomaly = Anomaly(log_time=analysedMessage["log_time"], log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
     new_post = Anomalies(**anomaly.dict())
     data_writer.write_single_row_to_database(new_post)
-    C.counter += 1
-    if C.counter == 3000:
-        print("time ", datetime.now().strftime("%H:%M:%S"))
     return anomaly
 
 
-# Finds anomly with id uId in db and updates it to match uFalse_Positive
+# Finds anomaly with id uId in db and updates it to match uFalse_Positive
 @app.put("/Update_false_positive")
 def update_false_postive(uId: int, uFalse_Positive: bool):
     anomaly = data_loader.get_Anomaly(uId)
