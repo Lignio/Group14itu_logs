@@ -7,17 +7,14 @@ import time
 import requests
 import json
 from anomaly_detector.model.inference import Inference
+from loguru import logger
 
 app = FastAPI()
 inference = Inference()
 
 
 # Connection for rabbitmq. Binds the queue to the 'datagenerator' exchange.
-connection = pika.BlockingConnection(pika.ConnectionParameters("rmq", 5672))
-
-
-
-
+counter = 0
 
 # class representing an anomaly.
 class Anomaly(BaseModel):
@@ -61,9 +58,8 @@ while True:
     try:
         connection = pika.BlockingConnection(pika.ConnectionParameters("rmq", 5672))
         channel = connection.channel()
-        channel.basic_qos(prefetch_count=1)
 
-        queue = channel.queue_declare(queue="anomaly")
+        queue = channel.queue_declare(queue="anomaly", durable=True)
         queue_name = queue.method.queue
 
         channel.queue_bind(
@@ -71,18 +67,16 @@ while True:
         )
         # Callback to analyze received anomaly. The body consists of code from post_anomaly.
         def callback(ch, method, properties, body):
+            global counter
+            counter = counter+1
+            logger.debug(counter)
             analysedMessage = str(body)
             anomaly_score = inference(analysedMessage)
-
+            print(counter)
             if anomaly_score > 0.02:
                 dt = datetime.now()
                 dts = dt.strftime("%d/%m/%Y")
 
-                anomaly = {
-                    "log_time": dts,
-                    "log_message": analysedMessage,
-                    "anomaly_score": float(anomaly_score),
-                }
 
                 requests.post(
                     "http://controller:8002/anomalies/post_anomaly",
@@ -92,12 +86,12 @@ while True:
                         "anomaly_score": anomaly_score,
                     },
                 )
-        channel.basic_consume(queue=queue_name, auto_ack=True, on_message_callback=callback)
+            channel.basic_ack(delivery_tag = method.delivery_tag)
+        channel.basic_consume(queue=queue_name, on_message_callback=callback)
 
         channel.start_consuming()
     except pika.exceptions.ConnectionClosedByBroker:
         break
     except pika.exceptions.StreamLostError:
         time.sleep(0.5)
-    except pika.exceptions.ConnectionResetError:
-        time.sleep(0.5)       
+    
