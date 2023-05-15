@@ -7,8 +7,8 @@ import dash_bootstrap_components as dbc
 from plotly.graph_objs import *
 import requests
 from pydantic import BaseSettings
-
 import keyCloakHandler
+
 # from pydantic import BaseSettings
 
 
@@ -56,10 +56,9 @@ app.layout = html.Div(
                 html.Div(
                     children=[
                         html.Div(
-                           html.Div(style={"display":"hidden"},id="hiddendiv")
+                            html.Div(style={"display": "hidden"}, id="hiddendiv")
                             if "Login" in f" {page['name']}"
-                            else
-                            dbc.Button(
+                            else dbc.Button(
                                 f" {page['name']}",
                                 color="secondary",
                                 class_name="SideBTN SideElement bi bi-kanban",
@@ -78,32 +77,33 @@ app.layout = html.Div(
                                 "font-weight": "500",
                             },
                         )
-                        for page in dash.page_registry.values() #load pages for the sidebar 
+                        for page in dash.page_registry.values()  # load pages for the sidebar
                     ]
                 ),
-                #only login/logout button
-                #outside the rest of the button to handle the change of name and function with login/logout
-                html.Div( #
-                    children =[
-                         html.Div(
-                            html.Div(style={"display":"hidden"})
-                            if "Dashboard" in f" {dash.page_registry['pages.login']['name']}" #Makes the pictogram different from dashboard
+                # only login/logout button
+                # outside the rest of the button to handle the change of name and function with login/logout
+                html.Div(  #
+                    children=[
+                        html.Div(
+                            html.Div(style={"display": "hidden"})
+                            if "Dashboard"
+                            in f" {dash.page_registry['pages.login']['name']}"  # Makes the pictogram different from dashboard
                             else dbc.Button(
                                 "",
                                 id="logInOutBtn",
-                                n_clicks = 0,
+                                n_clicks=0,
                                 color="secondary",
                                 class_name="SideBTN SideElement bi bi-exclamation-circle",
-                                href=dash.page_registry['pages.login']["relative_path"],
+                                href=dash.page_registry["pages.login"]["relative_path"],
                             ),
                             style={
                                 "margin-top": "5vh",
                                 "margin-left": "2%",
                                 "font-weight": "500",
-                            }
+                            },
                         )
-                ]
-                ),  
+                    ]
+                ),
             ],
         ),
         html.Div(id="Main-panel", children=[dash.page_container]),
@@ -123,7 +123,7 @@ app.layout = html.Div(
                             style={"float": "left"},
                         ),
                         dbc.Button(
-                            "Go to anomaly",
+                            "Go to anomalies",
                             id="goTo",
                             className="alertBtn",
                             n_clicks=0,
@@ -150,43 +150,48 @@ app.layout = html.Div(
     Input("goTo", "n_clicks"),
     Input("dismiss", "n_clicks"),
     State("alertMsg", "is_open"),
+    prevent_initial_call=True,
 )
 def toggle_alert(n1, n2, n3, is_open):
-    triggered_id = ctx.triggered_id
-    if triggered_id == "interval-component":
-        return check_for_new_anomalies(is_open)
+    if (
+        keyCloakHandler.CurrentUser is not None
+        and keyCloakHandler.CurrentUser.isLoggedIn()
+    ):
+        triggered_id = ctx.triggered_id
+        if triggered_id == "interval-component":
+            return check_for_new_anomalies(is_open)
+        else:
+            return not is_open
     else:
-        return not is_open
+        return False
 
 
 def check_for_new_anomalies(is_open):
     isFlagged = requests.get(check_flag).json()  # Calls checkFlag in Controller
-    # isFlagged = requests.get("http://localhost:8002/check_flag")
     if isFlagged:
         return True
     return is_open
 
-#changes the button from login to logout depending on currentuser
-@app.callback(
-    Output('logInOutBtn', 'children'),
-    Input('logInOutBtn', 'n_clicks')
-)
-def changeLogIn(n_clicks) :
-    if keyCloakHandler.CurrentUser is None :
+
+# changes the button from login to logout depending on currentuser
+@app.callback(Output("logInOutBtn", "children"), Input("logInOutBtn", "n_clicks"))
+def changeLogIn(n_clicks):
+    if keyCloakHandler.CurrentUser is None:
         return "Log in"
     elif keyCloakHandler.CurrentUser.isLoggedIn():
         return "Log out"
     return "Log in"
 
+
 @callback(
-    Output('locApp','href'),
-    Input('logInOutBtn', 'n_clicks'),
-    prevent_initial_call = True
+    Output("locApp", "href"),
+    Input("logInOutBtn", "n_clicks"),
+    prevent_initial_call=True,
 )
 def logout(value):
     if value != 0:
         keyCloakHandler.CurrentUser.logout()
-        return 'http://127.0.0.1:8050/login'
+        return "http://127.0.0.1:8050/login"
 
 
 # Debug true allows for hot reloading while writing code.
