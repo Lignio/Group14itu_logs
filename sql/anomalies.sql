@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS public.anomalies (
     "log_message" text,
     "anomaly_score" float,
     "false_positive" boolean,
+    "is_handled" boolean,
     CONSTRAINT "anomalies_pkey" PRIMARY KEY ("id")
 )
 TABLESPACE pg_default;
