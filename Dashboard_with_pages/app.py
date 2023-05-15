@@ -149,20 +149,21 @@ app.layout = html.Div(
     Input("interval-component", "n_intervals"),
     Input("goTo", "n_clicks"),
     Input("dismiss", "n_clicks"),
-    Input("_pages_location", "path"),
     State("alertMsg", "is_open"),
     prevent_initial_call=True,
 )
-def toggle_alert(n1, n2, n3, is_open, path):
+def toggle_alert(n1, n2, n3, is_open):
     if (
         keyCloakHandler.CurrentUser is not None
-        and not keyCloakHandler.CurrentUser.isLoggedIn()
+        and keyCloakHandler.CurrentUser.isLoggedIn()
     ):
         triggered_id = ctx.triggered_id
         if triggered_id == "interval-component":
             return check_for_new_anomalies(is_open)
         else:
             return not is_open
+    else:
+        return False
 
 
 def check_for_new_anomalies(is_open):
