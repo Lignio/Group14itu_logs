@@ -50,28 +50,15 @@ def simulateLogstream():
     connection = pika.BlockingConnection(pika.ConnectionParameters("rmq", 5672))
     channel = connection.channel()
 
-    while i<5000:
+    while i<3000:
+        # Add small delay to prevent flooding the server.
         time.sleep(0.01)
         logmessage = json.dumps(data_loader.get_log_message(random.choice(ids)).log_message)
         channel.basic_publish(
              exchange="datagenerator", routing_key="datagenerator.found", body=logmessage
         )
         i+=1
-
-
-@app.get("/rabbitmqTest/")
-def publish():
-    #connecting to rabbitmqserver
-    connection = pika.BlockingConnection(pika.ConnectionParameters("rmq", 5672))
-    channel = connection.channel()
-
-    #sendeing a random log to anomaly detector to be analysed
-    logmessage = json.dumps(data_loader.get_log_message(random.choice(ids)).log_message)
-    channel.basic_publish(
-        exchange="datagenerator", routing_key="datagenerator.found", body=logmessage
-    )
-    connection.close()
-    return "success"
+    connection.close()    
 
 # Starts two threads, one simulates the log stream, the other simulates stream analysis
 @app.get("/anomalies/start_stream")
