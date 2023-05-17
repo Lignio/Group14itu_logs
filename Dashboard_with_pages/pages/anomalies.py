@@ -12,6 +12,7 @@ import time
 import keyCloakHandler
 from pydantic import BaseSettings
 from loguru import logger
+import pages.dashboard as dashboard
 
 
 class Settings(BaseSettings):
@@ -24,6 +25,7 @@ controller = settings.controller
 
 get_anomaly_list = f"{controller}/get_anomaly_list"
 update_false_positive = f"{controller}/Update_false_positive"
+mark_as_handled = f"{controller}/Mark_as_handled"
 
 
 dash.register_page(__name__)
@@ -225,8 +227,8 @@ def serve_layout():
                                 }
                                 for i in actualDataDF.columns
                             ],
-                            # hidden_columns=["is_handled"],
-                            # css=[{"selector": ".show-hide", "rule": "display: none"}],
+                            hidden_columns=["is_handled"],
+                            css=[{"selector": ".show-hide", "rule": "display: none"}],
                             editable=False,
                             sort_action="native",
                             sort_by=[{"column_id": "id", "direction": "asc"}],
@@ -383,6 +385,7 @@ def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
                 update_false_positive,
                 params={"uId": selected, "uFalse_Positive": value},
             )
+            requests.put(mark_as_handled, params={"uId": selected})
             return not is_open
         if "close" == ctx.triggered_id:
             return not is_open
@@ -445,7 +448,14 @@ def adjust_table(value, n, sevValue, hanValue):
     data = getCopyDF(value)
     logger.debug(hanValue)
     # Checks if it needs to filter by severity and if yes, which severity
-    if sevValue != "Any Severity":
+    container = dashboard.dataContainer
+    id = container.id
+    if id != 0:
+        data = getSpecificAnomaly(id)
+        dashboard.dataContainer.id = 0
+        return data.to_dict(orient="records")
+
+    elif sevValue != "Any Severity":
         if hanValue != "All Anomalies":
             logger.debug("With Severity and timeframe")
             newData = getHandledDF(hanValue, data)
@@ -458,7 +468,6 @@ def adjust_table(value, n, sevValue, hanValue):
         return actualData.to_dict(orient="records")
 
     elif value:
-        data = getCopyDF(value)
         if hanValue != "All Anomalies":
             newData = getHandledDF(hanValue, data)
             logger.debug(newData)
@@ -467,7 +476,8 @@ def adjust_table(value, n, sevValue, hanValue):
         return data.to_dict(orient="records")
 
     elif n:
-        return getDataDF().to_dict(orient="records")
+        data = getCopyDF(value)
+        return data(orient="records")
 
 
 # This method gets and creates/recreates the dataframe with data from the database.
@@ -543,3 +553,12 @@ def getHandledDF(value, dataFrame):
     logger.debug(newDF)
 
     return newDF
+
+
+def getSpecificAnomaly(id):
+    data = getDataDF()
+    logger.debug(id)
+    actualData = data[(data["id"] == id)]
+    logger.debug(actualData)
+
+    return actualData

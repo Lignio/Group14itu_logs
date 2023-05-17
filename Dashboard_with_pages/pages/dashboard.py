@@ -9,6 +9,7 @@ from plotly.graph_objs import *
 import json
 import keyCloakHandler
 from pydantic import BaseSettings
+from loguru import logger
 
 
 class Settings(BaseSettings):
@@ -29,6 +30,7 @@ class DataContainer:
     data: pd.DataFrame
     timeFilteredData: pd.DataFrame
     latestInterval: tuple
+    id: int
 
 
 dataContainer = DataContainer()
@@ -57,7 +59,14 @@ def getDataDFSlim():
     jsonData = json.dumps(data)
     actualDataDF = pd.read_json(jsonData, convert_dates=False)
     actualDataDF = actualDataDF.reindex(
-        columns=["id", "log_message", "log_time", "false_positive", "anomaly_score"]
+        columns=[
+            "id",
+            "log_message",
+            "log_time",
+            "false_positive",
+            "anomaly_score",
+            "is_handled",
+        ]
     )
     actualDataDF["log_time"] = pd.to_datetime(
         actualDataDF["log_time"], format="%d/%m/%Y", dayfirst=True
@@ -84,14 +93,17 @@ dataContainer.timeFilteredData = getTimeFilteredDF(
     dataContainer.data, calculate_interval("Today")
 )
 dataContainer.latestInterval = calculate_interval("Today")
+dataContainer.id = 0
 
 
 # Gets the dataframe but reduced to only contain id, log_message and anomaly_score
 def getDataDFInbox():
     data = dataContainer.data
 
-    dataFrame = data.reindex(columns=["id", "log_message", "severity"])
-    return dataFrame
+    dataFrame = data[(data["is_handled"] == False)]
+    ActualDataFrame = dataFrame.reindex(columns=["id", "log_message", "severity"])
+
+    return ActualDataFrame
 
 
 # Creates and returns a list of all anomaly_scores in the dataframe
@@ -184,6 +196,7 @@ def serve_layout():
         return html.Div(
             children=[
                 html.Div(id="hidden-div", style={"display": "none"}),
+                dcc.Location(id="hidden-inbox-div"),
                 html.Div(
                     id="Main-panel",
                     children=[
@@ -704,3 +717,17 @@ def update_false_positive_count(value, unused):
 )
 def update_false_positive_percent(value, unused):
     return str(percentOfFalsePositives()) + "%"
+
+
+@callback(
+    Output("hidden-inbox-div", "href"),
+    Input("InboxTable", "active_cell"),
+    State("InboxTable", "derived_viewport_data"),
+)
+def goToAnomaly(active_cell, data):
+    if active_cell:
+        row = active_cell["row"]
+        selected = data[row]["id"]
+        dataContainer.id = selected
+        logger.debug("CHECk we are here")
+        return "http://127.0.0.1:8050/anomalies"
