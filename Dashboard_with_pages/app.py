@@ -113,7 +113,6 @@ app.layout = html.Div(
                     "New anomaly detected",
                     className="alert-heading",
                 ),
-                html.P("Choose to review it now or later"),
                 html.Div(
                     [
                         dbc.Button(
