@@ -4,8 +4,8 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import requests
 import json
-import threading
 import queue
+
 
 from datetime import datetime
 
@@ -28,8 +28,6 @@ get_record = f"{data_generator}/logs/get_record"
 
 
 # class representing an anomaly.
-
-
 class Anomaly(BaseModel):
     log_time: str
     log_message: str
@@ -102,31 +100,21 @@ def get_anomaly_list():
 
 
 # Endpoint for getting a log from the datagenerator, and inserting into the db if it is an anomaly
-@app.post("/post_anomaly", response_model=Anomaly)
-def post_anomaly():
-    myLogmessage = requests.get(get_record)
-    analysedMessage = requests.get(
-        get_prediction, params={"log_message": myLogmessage, "threshold": 0.02}
-    )
-    analysedMessage = analysedMessage.json()
-
-    dt = datetime.now()
-    dts = dt.strftime("%d/%m/%Y")
+@app.post("/anomalies/post_anomaly")
+def post_anomaly(log_message: str, log_time: str, anomaly_score: float):
 
     anomaly = Anomaly(
-        log_time=dts,
-        log_message=analysedMessage["log_message"],
-        anomaly_score=analysedMessage["anomaly_score"],
+        log_message=log_message, log_time=log_time, anomaly_score=anomaly_score
     )
-    if analysedMessage["anomaly_score"] > 0.02:
-        is_positive = compare_false_positive(
-            anomaly.log_message
-        )  # checks if anomoly is false positive
-        if is_positive == True:
-            return anomaly
-        # anomaly = Anomaly(log_time=analysedMessage["log_time"], log_message=analysedMessage["log_message"], anomaly_score=analysedMessage["anomaly_score"])
-        new_post = Anomalies(**anomaly.dict())
-        data_writer.write_single_row_to_database(new_post)
+
+    is_positive = compare_false_positive(
+        anomaly.log_message
+    )  # Checks if anomaly is a false positive
+    if is_false_positive == True:
+        return anomaly
+    new_post = Anomalies(**anomaly.dict())
+    data_writer.write_single_row_to_database(new_post)
+    anomalyFlag.isFlagged = True
     return anomaly
 
 
@@ -135,18 +123,6 @@ def post_anomaly():
 def update_false_postive(uId: int, uFalse_Positive: bool):
     anomaly = data_loader.get_Anomaly(uId)
     data_writer.change_false_positive(anomaly, uFalse_Positive)
-
-
-# Starts two threads, one simulates the log stream, the other simulates stream analysis
-@app.get("/start_stream")
-def start_stream():
-    t = threading.Thread(target=simulateLogstream)
-    t.daemon = True
-    t.start()
-    t2 = threading.Thread(target=simulateStreamAnalysis)
-    t2.daemon = True
-    t2.start()
-
 
 # method for checking if the anomaly is a false positive
 # it only takes the log_message into the consideration at the moment.
