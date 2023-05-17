@@ -110,10 +110,11 @@ def post_anomaly(log_message: str, log_time: str, anomaly_score: float):
     is_positive = compare_false_positive(
         anomaly.log_message
     )  # Checks if anomaly is a false positive
-    if is_positive == True:
+    if is_false_positive == True:
         return anomaly
     new_post = Anomalies(**anomaly.dict())
     data_writer.write_single_row_to_database(new_post)
+    anomalyFlag.isFlagged = True
     return anomaly
 
 
