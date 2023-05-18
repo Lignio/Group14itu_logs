@@ -444,7 +444,6 @@ def handled_value(value):
     ],
 )
 def adjust_table(value, n, sevValue, hanValue):
-    time.sleep(0.1)
     data = getCopyDF(value)
 
     container = dashboard.dataContainer
