@@ -251,7 +251,7 @@ def serve_layout():
                         ),
                         # Anomalies datatable, includes styling of the table/cells.
                         dash_table.DataTable(
-                            id="InboxTable",
+                            id="anomaly_table",
                             columns=[
                                 {
                                     "name": i,

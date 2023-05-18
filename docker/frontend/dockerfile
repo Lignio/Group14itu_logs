@@ -1,6 +1,7 @@
 FROM python:3.10
 
 ENV CONTROLLER http://controller:8002
+ENV SERVER_URL http://keycloak:8080/
 
 WORKDIR /app
 
