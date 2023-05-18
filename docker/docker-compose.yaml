@@ -1,5 +1,14 @@
 version: '3.9'
 services:
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: 'rabbitmq'
+    hostname: 'rmq'
+    ports:
+      - 5672:5672
+      - 15672:15672
+
   data_generator:
     build:
       context: ../
@@ -17,6 +26,7 @@ services:
       - "8000:8000"
     depends_on:
       - postgresdb
+      - rabbitmq
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -h db -p 5432 -U postgres -d postgres"]
       interval: 10s
@@ -82,17 +92,14 @@ services:
     build:
       context: ../
       dockerfile: ./docker/anomaly_detector/Dockerfile
+    depends_on:
+      - rabbitmq
     links:
       - rabbitmq
       - controller
+    restart: always
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: 'rabbitmq'
-    hostname: 'rmq'
-    ports:
-      - 5672:5672
-      - 15672:15672
+
 
   keycloak:
         environment:
@@ -104,5 +111,3 @@ services:
         command: start-dev
         ports:
           - "8080:8080"
-
-
