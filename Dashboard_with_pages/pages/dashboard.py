@@ -26,6 +26,8 @@ dash.register_page(__name__, path="/")
 
 
 # centralized container for the dataframes used on the dashboard
+# the id value is only used for transfering data between dashboard and anomaly page
+# used when the user selects an anomaly in the anomaly-inbox
 class DataContainer:
     data: pd.DataFrame
     timeFilteredData: pd.DataFrame
@@ -725,6 +727,9 @@ def update_false_positive_percent(value, unused):
     Input("InboxTable", "active_cell"),
     State("InboxTable", "derived_viewport_data"),
 )
+
+# When the user clicks on an anomaly in the anomaly-inbox
+# the user is transsfered to the anomaly page and shown the specific anomaly pressed
 def goToAnomaly(active_cell, data):
     if active_cell:
         row = active_cell["row"]

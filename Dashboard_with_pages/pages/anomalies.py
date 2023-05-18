@@ -446,15 +446,20 @@ def handled_value(value):
 def adjust_table(value, n, sevValue, hanValue):
     time.sleep(0.1)
     data = getCopyDF(value)
-    # Checks if it needs to filter by severity and if yes, which severity
+
     container = dashboard.dataContainer
     id = container.id
+    # Checks if we only need to show the anomaly chosen in the anomaly inbox on the dashboard
+    # If that is the case, selects the id of that anomanly and only displays that in the datatable
     if id != 0:
         data = getSpecificAnomaly(id)
         dashboard.dataContainer.id = 0
         return data.to_dict(orient="records")
 
+    # Checks if it needs to filter by severity and if yes, which severity
     elif sevValue != "Any Severity":
+        # Checks if a specific filter for if anomalies has been handled or not
+        # and adjusts the datatable as neccesary
         if hanValue != "All Anomalies":
             newData = getHandledDF(hanValue, data)
             severity = severity_interval(sevValue)
