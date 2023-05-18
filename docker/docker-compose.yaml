@@ -98,6 +98,7 @@ services:
         environment:
           KEYCLOAK_ADMIN: admin
           KEYCLOAK_ADMIN_PASSWORD: admin
+          # KEYCLOAK_ADMIN_PASSWORD: admin
         image: quay.io/keycloak/keycloak:latest
         hostname: keycloak
         command: start-dev
