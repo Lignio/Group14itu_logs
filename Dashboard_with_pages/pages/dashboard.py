@@ -96,7 +96,8 @@ dataContainer.latestInterval = calculate_interval("Today")
 dataContainer.id = 0
 
 
-# Gets the dataframe but reduced to only contain id, log_message and anomaly_score
+# Gets the dataframe but reduced to only contain id, log_message and severity.
+# Only contains anomalies that are unhandled
 def getDataDFInbox():
     data = dataContainer.data
 

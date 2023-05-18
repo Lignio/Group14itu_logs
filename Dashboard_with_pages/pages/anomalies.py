@@ -446,7 +446,6 @@ def handled_value(value):
 def adjust_table(value, n, sevValue, hanValue):
     time.sleep(0.1)
     data = getCopyDF(value)
-    logger.debug(hanValue)
     # Checks if it needs to filter by severity and if yes, which severity
     container = dashboard.dataContainer
     id = container.id
@@ -457,9 +456,7 @@ def adjust_table(value, n, sevValue, hanValue):
 
     elif sevValue != "Any Severity":
         if hanValue != "All Anomalies":
-            logger.debug("With Severity and timeframe")
             newData = getHandledDF(hanValue, data)
-            logger.debug(newData)
             severity = severity_interval(sevValue)
             actualData = newData[(newData["severity"] == severity)]
             return actualData.to_dict(orient="records")
@@ -470,8 +467,6 @@ def adjust_table(value, n, sevValue, hanValue):
     elif value:
         if hanValue != "All Anomalies":
             newData = getHandledDF(hanValue, data)
-            logger.debug(newData)
-            logger.debug("With Timeframe")
             return newData.to_dict(orient="records")
         return data.to_dict(orient="records")
 
@@ -527,7 +522,7 @@ def toLogin(input):
     return "http://127.0.0.1:8050/login"
 
 
-# Method for getting updated datatable based on date-filtering
+# Method for getting updated dataframe based on date-filtering
 def getCopyDF(value):
     actualDataDF = getDataDF()
     interval = calculate_interval(value)
@@ -540,25 +535,16 @@ def getCopyDF(value):
     return copyDf
 
 
+# Method for getting updated dataframe based on filtering on (un)handled anomalies
 def getHandledDF(value, dataFrame):
-    logger.debug("Check dataFrame used for handled method")
-    logger.debug(dataFrame)
-    logger.debug(value)
     handledVal = handled_value(value)
-    logger.debug(handledVal)
-
     newDF = dataFrame[(dataFrame["is_handled"] == handledVal)]
-
-    logger.debug("Check dataFrame AFTER handled")
-    logger.debug(newDF)
 
     return newDF
 
 
+# Method for getting a dataframe with only 1 anomaly in based on it's id
 def getSpecificAnomaly(id):
     data = getDataDF()
-    logger.debug(id)
     actualData = data[(data["id"] == id)]
-    logger.debug(actualData)
-
     return actualData
