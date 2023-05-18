@@ -124,6 +124,13 @@ def update_false_postive(uId: int, uFalse_Positive: bool):
     data_writer.change_false_positive(anomaly, uFalse_Positive)
 
 
+# Finds anomaly with id Uid in db and updates the is_handled field to true
+@app.put("/Mark_as_handled")
+def mark_as_handled(uId):
+    anomaly = data_loader.get_Anomaly(uId)
+    data_writer.change_is_handled(anomaly)
+
+
 # method for checking if the anomaly is a false positive
 # it only takes the log_message into the consideration at the moment.
 def compare_false_positive(logmessage: str):

@@ -11,6 +11,8 @@ from datetime import datetime, timedelta
 import time
 import keyCloakHandler
 from pydantic import BaseSettings
+from loguru import logger
+import pages.dashboard as dashboard
 
 
 class Settings(BaseSettings):
@@ -23,6 +25,7 @@ controller = settings.controller
 
 get_anomaly_list = f"{controller}/get_anomaly_list"
 update_false_positive = f"{controller}/Update_false_positive"
+mark_as_handled = f"{controller}/Mark_as_handled"
 
 
 dash.register_page(__name__)
@@ -30,7 +33,10 @@ dash.register_page(__name__)
 
 # Entire html is now moved into a serve_layout() method which allows for reloading data when refreshing the page.
 def serve_layout():
-    if keyCloakHandler.CurrentUser is not None and keyCloakHandler.CurrentUser.isLoggedIn() :
+    if (
+        keyCloakHandler.CurrentUser is not None
+        and keyCloakHandler.CurrentUser.isLoggedIn()
+    ):
         actualDataDF = getDataDF()
         # Render the layout.
         return html.Div(
@@ -164,75 +170,29 @@ def serve_layout():
                                         "margin-top": "-5px",
                                     },
                                 ),
-                                dbc.DropdownMenu(
-                                    label="Status",
-                                    toggle_style={
-                                        "background": "#f8f8f8",
-                                        "color": "black",
-                                    },
-                                    toggleClassName="border-white",
-                                    direction="down",
-                                    children=[
-                                        dbc.DropdownMenuItem(
-                                            "Status 1", id="status_one_option"
-                                        ),
-                                        dbc.DropdownMenuItem(
-                                            "Status 2", id="status_two_option"
-                                        ),
-                                        dbc.DropdownMenuItem(
-                                            "Status 3", id="status_three_option"
-                                        ),
+                                # Dropdown for choosing which severity level to filter by
+                                dcc.Dropdown(
+                                    [
+                                        "Low Severity",
+                                        "Medium Severity",
+                                        "High Severity",
+                                        "Any Severity",
                                     ],
+                                    "Any Severity",
+                                    id="dropdownmenu_severity",
                                     className="cardLine",
-                                    id="dropdownmenu_status",
-                                    style={"margin-right": "8px"},
+                                    style={"width": "13vw", "margin-right": "8px"},
                                 ),
-                                dbc.DropdownMenu(
-                                    label="Severity",
-                                    toggle_style={
-                                        "background": "#f8f8f8",
-                                        "color": "black",
-                                        "border": "#f8f8f8",
-                                    },
-                                    toggleClassName="",
-                                    direction="down",
-                                    children=[
-                                        dbc.DropdownMenuItem(
-                                            "Severity 1", id="severity_one_option"
-                                        ),
-                                        dbc.DropdownMenuItem(
-                                            "Severity 2", id="severity_two_option"
-                                        ),
-                                        dbc.DropdownMenuItem(
-                                            "Severity 3", id="severity_three_option"
-                                        ),
+                                dcc.Dropdown(
+                                    [
+                                        "Unhandled Anomalies",
+                                        "Handled Anomalies",
+                                        "All Anomalies",
                                     ],
+                                    "Unhandled Anomalies",
+                                    id="dropdownmenu_handled",
                                     className="cardLine",
-                                    id="dropdownmenu_status",
-                                    style={"margin-right": "8px"},
-                                ),
-                                dbc.DropdownMenu(
-                                    label=" Date detected",
-                                    toggle_style={
-                                        "background": "#f8f8f8",
-                                        "color": "black",
-                                    },
-                                    toggleClassName="border-white",
-                                    direction="down",
-                                    children=[
-                                        dbc.DropdownMenuItem(
-                                            "Date 1", id="date_one_option"
-                                        ),
-                                        dbc.DropdownMenuItem(
-                                            "Date 2", id="date_two_option"
-                                        ),
-                                        dbc.DropdownMenuItem(
-                                            "Date 3", id="date_three_option"
-                                        ),
-                                    ],
-                                    className="cardLine",
-                                    id="dropdownmenu_status",
-                                    style={"margin-right": "8px"},
+                                    style={"width": "13vw", "margin-right": "8px"},
                                 ),
                                 # Searchbar currently has no functionality. This can easily be implemented with callbacks.
                                 dbc.Input(
@@ -247,11 +207,11 @@ def serve_layout():
                                     },
                                 ),
                             ],
-                            style={"margin": "10px 10px 10px 10px"},
+                            style={"margin": "10px 10px 10px 10px", "display": "flex"},
                         ),
                         # Anomalies datatable, includes styling of the table/cells.
                         dash_table.DataTable(
-                            id="InboxTable",
+                            id="anomaly_table",
                             columns=[
                                 {
                                     "name": i,
@@ -267,6 +227,8 @@ def serve_layout():
                                 }
                                 for i in actualDataDF.columns
                             ],
+                            hidden_columns=["is_handled"],
+                            css=[{"selector": ".show-hide", "rule": "display: none"}],
                             editable=False,
                             sort_action="native",
                             sort_by=[{"column_id": "id", "direction": "asc"}],
@@ -296,6 +258,34 @@ def serve_layout():
                                     },
                                     "backgroundColor": "#e37c8b",
                                 },
+                                {
+                                    "if": {
+                                        "filter_query": '{false_positive} contains "false"',
+                                        "column_id": "false_positive",
+                                    },
+                                    "backgroundColor": "#e37c8b",
+                                },
+                                {
+                                    "if": {
+                                        "filter_query": '{severity} contains "low"',
+                                        "column_id": "severity",
+                                    },
+                                    "backgroundColor": "#FFFF00",
+                                },
+                                {
+                                    "if": {
+                                        "filter_query": '{severity} contains "medium"',
+                                        "column_id": "severity",
+                                    },
+                                    "backgroundColor": "#ffa500",
+                                },
+                                {
+                                    "if": {
+                                        "filter_query": '{severity} contains "high"',
+                                        "column_id": "severity",
+                                    },
+                                    "backgroundColor": "#e37c8b",
+                                },
                             ],
                             style_header_conditional=[
                                 {
@@ -316,6 +306,7 @@ def serve_layout():
                                     "log_time",
                                     "false_positive",
                                     "anomaly_score",
+                                    "severity",
                                     "...",
                                 ]
                             ],
@@ -344,7 +335,7 @@ def serve_layout():
                 "width": "80vw",
             },
         )
-    else :
+    else:
         return html.Div(
             children=[
                 dcc.Location(id="locAnomaly"),
@@ -352,7 +343,7 @@ def serve_layout():
                     # Anomalies page title
                     id="page-content",
                 ),
-                ],
+            ],
         )
 
 
@@ -394,6 +385,7 @@ def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
                 update_false_positive,
                 params={"uId": selected, "uFalse_Positive": value},
             )
+            requests.put(mark_as_handled, params={"uId": selected})
             return not is_open
         if "close" == ctx.triggered_id:
             return not is_open
@@ -431,6 +423,14 @@ def severity_interval(value):
             return "high"
 
 
+def handled_value(value):
+    match value:
+        case "Unhandled Anomalies":
+            return False
+        case "Handled Anomalies":
+            return True
+
+
 # Method for updating dataframe
 # When an option is selected in the dropdown the table is updated to fit the filter
 # When the ok button is clicked we also update the table
@@ -440,28 +440,44 @@ def severity_interval(value):
         Input("interval_picker_dropdown", "value"),
         Input("OK", "n_clicks"),
         Input("dropdownmenu_severity", "value"),
+        Input("dropdownmenu_handled", "value"),
     ],
 )
-def adjust_table(value, n, sevValue):
+def adjust_table(value, n, sevValue, hanValue):
     time.sleep(0.1)
+    data = getCopyDF(value)
+
+    container = dashboard.dataContainer
+    id = container.id
+    # Checks if we only need to show the anomaly chosen in the anomaly inbox on the dashboard
+    # If that is the case, selects the id of that anomanly and only displays that in the datatable
+    if id != 0:
+        data = getSpecificAnomaly(id)
+        dashboard.dataContainer.id = 0
+        return data.to_dict(orient="records")
 
     # Checks if it needs to filter by severity and if yes, which severity
-    if sevValue != "Any Severity":
-        if value:
-            copyDF = getCopyDF(value)
-        else:
-            copyDF = getDataDF()
-
+    elif sevValue != "Any Severity":
+        # Checks if a specific filter for if anomalies has been handled or not
+        # and adjusts the datatable as neccesary
+        if hanValue != "All Anomalies":
+            newData = getHandledDF(hanValue, data)
+            severity = severity_interval(sevValue)
+            actualData = newData[(newData["severity"] == severity)]
+            return actualData.to_dict(orient="records")
         severity = severity_interval(sevValue)
-        actualcopyDf = copyDF[(copyDF["severity"] == severity)]
-        return actualcopyDf.to_dict(orient="records")
+        actualData = data[(data["severity"] == severity)]
+        return actualData.to_dict(orient="records")
 
-    if value:
-        copyDF = getCopyDF(value)
-        return copyDF.to_dict(orient="records")
+    elif value:
+        if hanValue != "All Anomalies":
+            newData = getHandledDF(hanValue, data)
+            return newData.to_dict(orient="records")
+        return data.to_dict(orient="records")
 
     elif n:
-        return getDataDF().to_dict(orient="records")
+        data = getCopyDF(value)
+        return data(orient="records")
 
 
 # This method gets and creates/recreates the dataframe with data from the database.
@@ -470,7 +486,14 @@ def getDataDF():
     jsonData = json.dumps(data)
     actualDataDF = pd.read_json(jsonData, convert_dates=False)
     actualDataDF = actualDataDF.reindex(
-        columns=["id", "log_message", "log_time", "false_positive", "anomaly_score"]
+        columns=[
+            "id",
+            "log_message",
+            "log_time",
+            "false_positive",
+            "anomaly_score",
+            "is_handled",
+        ]
     )
     actualDataDF["log_time"] = pd.to_datetime(
         actualDataDF["log_time"], format="%d/%m/%Y", dayfirst=True
@@ -494,14 +517,17 @@ def getDataDF():
     pd.options.display.width = 10
     return actualDataDF
 
+
 @callback(
-    Output('locAnomaly', 'href'),
-    Input('page-content', 'children'),
-    allow_duplicate=True)
+    Output("locAnomaly", "href"),
+    Input("page-content", "children"),
+    allow_duplicate=True,
+)
 def toLogin(input):
     return "http://127.0.0.1:8050/login"
 
-# Method for getting updated datatable based on date-filtering
+
+# Method for getting updated dataframe based on date-filtering
 def getCopyDF(value):
     actualDataDF = getDataDF()
     interval = calculate_interval(value)
@@ -512,3 +538,18 @@ def getCopyDF(value):
     ]
 
     return copyDf
+
+
+# Method for getting updated dataframe based on filtering on (un)handled anomalies
+def getHandledDF(value, dataFrame):
+    handledVal = handled_value(value)
+    newDF = dataFrame[(dataFrame["is_handled"] == handledVal)]
+
+    return newDF
+
+
+# Method for getting a dataframe with only 1 anomaly in based on it's id
+def getSpecificAnomaly(id):
+    data = getDataDF()
+    actualData = data[(data["id"] == id)]
+    return actualData

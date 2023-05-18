@@ -28,3 +28,10 @@ class DataWriter:
         with Session(self.engine) as session:
             session.add(anomaly)
             session.commit()
+
+    def change_is_handled(self, data):
+        anomaly = data
+        anomaly.is_handled = True
+        with Session(self.engine) as session:
+            session.add(anomaly)
+            session.commit()
