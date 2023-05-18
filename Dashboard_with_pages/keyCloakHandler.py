@@ -18,13 +18,13 @@ keycloak_openid = KeycloakOpenID(server_url=server_url,
                                 client_id="dashclient",
                                 realm_name="master",
                                 client_secret_key="woo797pz61dd17nZxWTWQfMygWLY4DJB")
-
-
+   
 # Gets authentication token for user, used to gain access to user information based on login info
 def getAuthTokenForUser(username, userPass):
     token = keycloak_openid.token(username, userPass)['access_token']
     return token
 
+    
 # Get user info returns only the basic info on the user, such as their username and email. 
 # This function is not in use right now, but is there if we need it going forward.
 def getUserInfo(username,userPass):
