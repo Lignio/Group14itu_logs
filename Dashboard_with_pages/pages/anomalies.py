@@ -194,18 +194,6 @@ def serve_layout():
                                     className="cardLine",
                                     style={"width": "13vw", "margin-right": "8px"},
                                 ),
-                                # Searchbar currently has no functionality. This can easily be implemented with callbacks.
-                                dbc.Input(
-                                    id="input",
-                                    className="bi bi-search fa-2x cardLine",
-                                    placeholder="Search for an anomaly...",
-                                    type="text",
-                                    style={
-                                        "width": "25vw",
-                                        "float": "right",
-                                        "background": "#f8f8f8",
-                                    },
-                                ),
                             ],
                             style={"margin": "10px 10px 10px 10px", "display": "flex"},
                         ),
