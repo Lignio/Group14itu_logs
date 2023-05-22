@@ -5,7 +5,7 @@ import plotly.express as px
 from datetime import date
 import dash_bootstrap_components as dbc
 import requests
-from plotly.graph_objs import *
+import plotly.graph_objs
 import json
 import keyCloakHandler
 
@@ -13,7 +13,7 @@ import keyCloakHandler
 dash.register_page(__name__)
 
 def serve_layout():
-    #div that cover the whole side
+    #div that covers the whole page
         return html.Div([
             html.Div(id="hiddenDiv",style={"display":"none"}),
             dcc.Location(id="location"),

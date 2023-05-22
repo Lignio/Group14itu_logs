@@ -1,15 +1,10 @@
 from dash import Dash, dcc, html, Input, Output, State, ctx, callback
 import dash
-import pandas as pd
-import plotly.express as px
-from datetime import date
 import dash_bootstrap_components as dbc
-from plotly.graph_objs import *
 import requests
 from pydantic import BaseSettings
 import keyCloakHandler
 
-# from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -192,7 +187,3 @@ def logout(value):
         keyCloakHandler.CurrentUser.logout()
         return "http://127.0.0.1:8050/login"
 
-
-# Debug true allows for hot reloading while writing code.
-# if __name__ == "__main__":
-#   app.run(debug=True, port=8050)
