@@ -47,24 +47,6 @@ def serve_layout():
                     html.H1("Anomalies", className="FontBold"),
                     id="TitleDIV",
                 ),
-                # Dropdown menu
-                html.Div(
-                    children=[
-                        dcc.Dropdown(
-                            [
-                                "All time",
-                                "Today",
-                                "Yesterday",
-                                "Last two days",
-                                "Last 7 days",
-                                "This month",
-                            ],
-                            "Today",
-                            id="interval_picker_dropdown",
-                            style={"width": "10vw"},
-                        ),
-                    ]
-                ),
                 # This is the popup menu that is shown when the user presses the ... button.
                 html.Div(
                     [
@@ -129,6 +111,19 @@ def serve_layout():
                                         "margin-top": "-5px",
                                     },
                                 ),
+                                dcc.Dropdown(
+                                    [
+                                        "All time",
+                                        "Today",
+                                        "Yesterday",
+                                        "Last two days",
+                                        "Last 7 days",
+                                        "This month",
+                                    ],
+                                    "Today",
+                                    id="interval_picker_dropdown",
+                                    style={"width": "13vw", "margin-right": "11px"},
+                                ),
                                 # Dropdown for choosing which severity level to filter by
                                 dcc.Dropdown(
                                     [
@@ -139,8 +134,7 @@ def serve_layout():
                                     ],
                                     "Any Severity",
                                     id="dropdownmenu_severity",
-                                    className="cardLine",
-                                    style={"width": "13vw", "margin-right": "8px"},
+                                    style={"width": "13vw", "margin-right": "11px"},
                                 ),
                                 dcc.Dropdown(
                                     [
@@ -150,8 +144,7 @@ def serve_layout():
                                     ],
                                     "Unhandled Anomalies",
                                     id="dropdownmenu_handled",
-                                    className="cardLine",
-                                    style={"width": "13vw", "margin-right": "8px"},
+                                    style={"width": "13vw", "margin-right": "11px"},
                                 ),
                             ],
                             style={"margin": "10px 10px 10px 10px", "display": "flex"},
@@ -175,7 +168,6 @@ def serve_layout():
                                 for i in actualDataDF.columns
                             ],
                             hidden_columns=["is_handled"],
-                            css=[{"selector": ".show-hide", "rule": "display: none"}],
                             editable=False,
                             sort_action="native",
                             sort_by=[{"column_id": "id", "direction": "asc"}],
@@ -186,6 +178,23 @@ def serve_layout():
                                 "height": "70vh",
                                 "marginBottom": "20px",
                             },
+                            tooltip_conditional=[
+                                {
+                                    "if": {"column_id": col},
+                                    "value": "Click to edit this value",
+                                    "use_with": "data",
+                                }
+                                for col in ["false_positive", "..."]
+                            ],
+                            tooltip_delay=0,
+                            tooltip_duration=None,
+                            css=[
+                                {"selector": ".show-hide", "rule": "display: none"},
+                                {
+                                    "selector": ".dash-table-tooltip",
+                                    "rule": "background-color: #141446; color: white",
+                                },
+                            ],
                             style_data_conditional=[
                                 {
                                     "if": {
