@@ -75,9 +75,9 @@ def getDataDFSlim():
     )
     severityList = []
     for i in actualDataDF.anomaly_score:
-        if i < 0.03:
+        if i < 0.0226:
             severityList.append("low")
-        elif i < 0.05:
+        elif i < 0.03:
             severityList.append("medium")
         else:
             severityList.append("high")
