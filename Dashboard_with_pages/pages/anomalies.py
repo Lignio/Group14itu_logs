@@ -112,7 +112,7 @@ def serve_layout():
                     [
                         dbc.Modal(
                             [
-                                dbc.ModalHeader(dbc.ModalTitle("Options")),
+                                dbc.ModalHeader(dbc.ModalTitle("Options"), close_button=False),
                                 dbc.ModalBody(
                                     html.Div(
                                         children=[
@@ -342,6 +342,7 @@ layout = serve_layout
 # This is the callback for the functionality that marks/unmarks false positives in the anomaly data.
 @callback(
     Output("modal", "is_open"),
+    Output("anomaly_table", "active_cell"),
     [
         Input("anomaly_table", "active_cell"),
         Input("close", "n_clicks"),
@@ -374,13 +375,13 @@ def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
                 params={"uId": selected, "uFalse_Positive": value},
             )
             requests.put(mark_as_handled, params={"uId": selected})
-            return not is_open
+            return not is_open, None
         if "close" == ctx.triggered_id:
-            return not is_open
+            return not is_open, None
         elif (col == "...") or (col == "false_positive"):
-            return not is_open
+            return not is_open, active_cell
         elif col == "log_message":
-            return is_open
+            return is_open, active_cell
 
 
 def calculate_interval(value):
