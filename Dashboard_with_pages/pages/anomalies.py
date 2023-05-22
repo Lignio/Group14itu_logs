@@ -112,7 +112,7 @@ def serve_layout():
                     [
                         dbc.Modal(
                             [
-                                dbc.ModalHeader(dbc.ModalTitle("Options")),
+                                dbc.ModalHeader(dbc.ModalTitle("Options"), close_button=False),
                                 dbc.ModalBody(
                                     html.Div(
                                         children=[
@@ -138,7 +138,6 @@ def serve_layout():
                                                 id="OK",
                                                 className="ms-auto",
                                                 n_clicks=0,
-                                                href="/anomalies/",
                                             )
                                         ),
                                         dbc.Button(
@@ -216,7 +215,6 @@ def serve_layout():
                                 for i in actualDataDF.columns
                             ],
                             hidden_columns=["is_handled"],
-                            css=[{"selector": ".show-hide", "rule": "display: none"}],
                             editable=False,
                             sort_action="native",
                             sort_by=[{"column_id": "id", "direction": "asc"}],
@@ -227,6 +225,17 @@ def serve_layout():
                                 "height": "70vh",
                                 "marginBottom": "20px",
                             },
+                            tooltip_conditional = [
+                                {
+                                    'if': {'column_id': col},
+                                    'value': 'Click to edit this value',
+                                    'use_with': 'data'
+                                } for col in ['false_positive', '...']
+                            ],
+                            tooltip_delay=0,
+                            tooltip_duration=None,
+                            css=[{"selector": ".show-hide", "rule": "display: none"},
+                                 {'selector': '.dash-table-tooltip', 'rule': 'background-color: #141446; color: white'}],
                             style_data_conditional=[
                                 {
                                     "if": {
@@ -342,6 +351,7 @@ layout = serve_layout
 # This is the callback for the functionality that marks/unmarks false positives in the anomaly data.
 @callback(
     Output("modal", "is_open"),
+    Output("anomaly_table", "active_cell"),
     [
         Input("anomaly_table", "active_cell"),
         Input("close", "n_clicks"),
@@ -374,13 +384,13 @@ def openMarkerPopUp(active_cell, n, ok, value, data, is_open):
                 params={"uId": selected, "uFalse_Positive": value},
             )
             requests.put(mark_as_handled, params={"uId": selected})
-            return not is_open
+            return not is_open, None
         if "close" == ctx.triggered_id:
-            return not is_open
+            return not is_open, None
         elif (col == "...") or (col == "false_positive"):
-            return not is_open
+            return not is_open, active_cell
         elif col == "log_message":
-            return is_open
+            return is_open, active_cell
 
 
 def calculate_interval(value):
@@ -432,7 +442,6 @@ def handled_value(value):
     ],
 )
 def adjust_table(value, n, sevValue, hanValue):
-    time.sleep(0.1)
     data = getCopyDF(value)
 
     container = dashboard.dataContainer
