@@ -227,13 +227,10 @@ def serve_layout():
                                         "This month",
                                     ],
                                     "Today",
-                                    className="border-white DropShadow",
                                     id="interval_selector",
                                     style={
                                         "width": "10vw",
                                         "margin-bottom": "20px",
-                                        "background": "white",
-                                        "color": "black",
                                     },
                                 ),
                             ]
@@ -570,6 +567,7 @@ layout = serve_layout
         Input("interval_selector", "value"),
         Input("count_update_interval", "n_intervals"),
     ],
+    prevent_initial_call=True,
 )
 def update_dataContainer(value, unused):
     trigger = ctx.triggered_id
@@ -590,7 +588,9 @@ def update_dataContainer(value, unused):
 
 
 @callback(
-    Output("locDash", "href"), Input("page-dash", "children"), allow_duplicate=True
+    Output("locDash", "href"),
+    Input("page-dash", "children"),
+    allow_duplicate=True,
 )
 def toLogin(input):
     return "http://127.0.0.1:8050/login"

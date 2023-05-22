@@ -47,48 +47,6 @@ def serve_layout():
                     html.H1("Anomalies", className="FontBold"),
                     id="TitleDIV",
                 ),
-                html.Div(
-                    # This is the breadcrumb, made using Boostrap.
-                    # The current href's lead nowhere, but can be easily changed to do so.
-                    html.Nav(
-                        html.Ol(
-                            className="breadcrumb",
-                            children=[
-                                html.Li(
-                                    className="breadcrumb-item",
-                                    children=[
-                                        html.A(
-                                            "Home",
-                                            href="./home.py",
-                                            style={
-                                                "text-decoration": "none",
-                                                "color": "#6c757d",
-                                            },
-                                        )
-                                    ],
-                                ),
-                                html.Li(
-                                    className="breadcrumb-item",
-                                    children=[
-                                        html.A(
-                                            "Anomaly Detector",
-                                            href="",
-                                            style={
-                                                "text-decoration": "none",
-                                                "color": "#6c757d",
-                                            },
-                                        )
-                                    ],
-                                ),
-                                html.Li(
-                                    "Anomalies",
-                                    className="breadcrumb-item active FontBold",
-                                    style={"color": "black"},
-                                ),
-                            ],
-                        ),
-                    ),
-                ),
                 # Dropdown menu
                 html.Div(
                     children=[
@@ -289,7 +247,11 @@ def serve_layout():
                                 "textAlign": "center",
                             },
                             style_cell_conditional=[
-                                {"if": {"column_id": a}, "textAlign": "center"}
+                                {
+                                    "if": {"column_id": a},
+                                    "textAlign": "center",
+                                    "width": "100px",
+                                }
                                 for a in [
                                     "id",
                                     "log_time",
@@ -351,6 +313,7 @@ layout = serve_layout
         Input("demo-dropdown", "value"),
     ],
     [State("anomaly_table", "derived_viewport_data"), State("modal", "is_open")],
+    prevent_initial_call=True,
 )
 
 # This method handles what pressing on the '...' button does.
@@ -432,6 +395,7 @@ def handled_value(value):
         Input("dropdownmenu_severity", "value"),
         Input("dropdownmenu_handled", "value"),
     ],
+    prevent_initial_call=True,
 )
 def adjust_table(value, n, sevValue, hanValue):
     data = getCopyDF(value)
