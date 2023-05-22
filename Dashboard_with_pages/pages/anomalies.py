@@ -215,7 +215,6 @@ def serve_layout():
                                 for i in actualDataDF.columns
                             ],
                             hidden_columns=["is_handled"],
-                            css=[{"selector": ".show-hide", "rule": "display: none"}],
                             editable=False,
                             sort_action="native",
                             sort_by=[{"column_id": "id", "direction": "asc"}],
@@ -226,6 +225,17 @@ def serve_layout():
                                 "height": "70vh",
                                 "marginBottom": "20px",
                             },
+                            tooltip_conditional = [
+                                {
+                                    'if': {'column_id': col},
+                                    'value': 'Click to edit this value',
+                                    'use_with': 'data'
+                                } for col in ['false_positive', '...']
+                            ],
+                            tooltip_delay=0,
+                            tooltip_duration=None,
+                            css=[{"selector": ".show-hide", "rule": "display: none"},
+                                 {'selector': '.dash-table-tooltip', 'rule': 'background-color: #141446; color: white'}],
                             style_data_conditional=[
                                 {
                                     "if": {
