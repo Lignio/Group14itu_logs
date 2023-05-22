@@ -138,7 +138,6 @@ def serve_layout():
                                                 id="OK",
                                                 className="ms-auto",
                                                 n_clicks=0,
-                                                href="/anomalies/",
                                             )
                                         ),
                                         dbc.Button(
