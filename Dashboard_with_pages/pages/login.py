@@ -43,7 +43,7 @@ def serve_layout():
                 dbc.Button(
                     "Login",
                     className="SideBTN SideElement bi bi-box-arrow-in-right",
-                    style={"vertical-align": "text-bottom","margin-bottom":"10vh",},
+                    style={"vertical-align": "text-bottom","margin-bottom":"2Vh",},
                     id="LoginBTN",
                     n_clicks=0
                 ),
@@ -71,10 +71,8 @@ layout= serve_layout()
 def prints(n,userN,userP): 
     try:
         keyCloakHandler.CurrentUser = keyCloakHandler.currentUserSession(userN, userP)
-        #keyCloakHandler.CurrentUser.
         return "http://127.0.0.1:8050/", {'display': 'none'}
     except: # invalid_user_credentials 
-        print("-----ERROR FROM KEYCLOACK-----")
         return dash.no_update,{'display': 'block'}
         # raise PreventUpdate
    
