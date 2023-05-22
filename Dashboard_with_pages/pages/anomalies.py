@@ -112,7 +112,9 @@ def serve_layout():
                     [
                         dbc.Modal(
                             [
-                                dbc.ModalHeader(dbc.ModalTitle("Options"), close_button=False),
+                                dbc.ModalHeader(
+                                    dbc.ModalTitle("Options"), close_button=False
+                                ),
                                 dbc.ModalBody(
                                     html.Div(
                                         children=[
@@ -485,6 +487,7 @@ def getDataDF():
     actualDataDF["log_time"] = pd.to_datetime(
         actualDataDF["log_time"], format="%d/%m/%Y", dayfirst=True
     )
+    actualDataDF.log_time = pd.DatetimeIndex(actualDataDF.log_time).strftime("%Y-%m-%d")
 
     severityList = []
     for i in actualDataDF.anomaly_score:
@@ -520,8 +523,8 @@ def getCopyDF(value):
     interval = calculate_interval(value)
 
     copyDf = actualDataDF[
-        (actualDataDF["log_time"] <= interval[0])
-        & (actualDataDF["log_time"] >= interval[1])
+        (pd.to_datetime(actualDataDF["log_time"]) <= interval[0])
+        & (pd.to_datetime(actualDataDF["log_time"]) >= interval[1])
     ]
 
     return copyDf
