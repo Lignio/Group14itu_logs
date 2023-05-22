@@ -89,30 +89,14 @@ def serve_layout():
                         ),
                     ),
                 ),
-                # Dropdown menu
-                html.Div(
-                    children=[
-                        dcc.Dropdown(
-                            [
-                                "All time",
-                                "Today",
-                                "Yesterday",
-                                "Last two days",
-                                "Last 7 days",
-                                "This month",
-                            ],
-                            "Today",
-                            id="interval_picker_dropdown",
-                            style={"width": "10vw"},
-                        ),
-                    ]
-                ),
                 # This is the popup menu that is shown when the user presses the ... button.
                 html.Div(
                     [
                         dbc.Modal(
                             [
-                                dbc.ModalHeader(dbc.ModalTitle("Options"), close_button=False),
+                                dbc.ModalHeader(
+                                    dbc.ModalTitle("Options"), close_button=False
+                                ),
                                 dbc.ModalBody(
                                     html.Div(
                                         children=[
@@ -169,6 +153,19 @@ def serve_layout():
                                         "margin-top": "-5px",
                                     },
                                 ),
+                                dcc.Dropdown(
+                                    [
+                                        "All time",
+                                        "Today",
+                                        "Yesterday",
+                                        "Last two days",
+                                        "Last 7 days",
+                                        "This month",
+                                    ],
+                                    "Today",
+                                    id="interval_picker_dropdown",
+                                    style={"width": "13vw", "margin-right": "11px"},
+                                ),
                                 # Dropdown for choosing which severity level to filter by
                                 dcc.Dropdown(
                                     [
@@ -179,8 +176,7 @@ def serve_layout():
                                     ],
                                     "Any Severity",
                                     id="dropdownmenu_severity",
-                                    className="cardLine",
-                                    style={"width": "13vw", "margin-right": "8px"},
+                                    style={"width": "13vw", "margin-right": "11px"},
                                 ),
                                 dcc.Dropdown(
                                     [
@@ -190,8 +186,7 @@ def serve_layout():
                                     ],
                                     "Unhandled Anomalies",
                                     id="dropdownmenu_handled",
-                                    className="cardLine",
-                                    style={"width": "13vw", "margin-right": "8px"},
+                                    style={"width": "13vw", "margin-right": "11px"},
                                 ),
                             ],
                             style={"margin": "10px 10px 10px 10px", "display": "flex"},
