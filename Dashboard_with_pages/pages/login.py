@@ -16,8 +16,7 @@ dash.register_page(__name__)
 
 def serve_layout():
     # div that cover the whole side
-    return html.Div(
-        [
+    return html.Div([
             html.Div(id="hiddenDiv", style={"display": "none"}),
             dcc.Location(id="location"),
             dbc.Col(
@@ -59,7 +58,9 @@ def serve_layout():
                 ),
             ],className='loginCard'),      
         ],className="centered SystematicGradient"
-)
+    )
+
+layout = serve_layout()
 
 @callback(
     [
