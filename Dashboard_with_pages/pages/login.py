@@ -43,23 +43,27 @@ def serve_layout():
                 dbc.Button(
                     "Login",
                     className="SideBTN SideElement bi bi-box-arrow-in-right",
-                    style={"vertical-align": "text-bottom","margin-bottom":"2Vh",},
+                    style={"vertical-align": "text-bottom","margin-bottom":"2vh",},
                     id="LoginBTN",
                     n_clicks=0
                 ),
                 #Prompt for when login failed - will only show when necessary
                 html.Div([
-                    html.P("Incorrect username or password", className="SideElement error-text")
-                ],id='loginFailedBox',className="SideElement form-floating error-message",style={"display":"none"},),
+                    html.P("Incorrect username or password", className="SideElement error-text"), 
+                ],id='loginFailedBox',className="shakeAnimation SideElement form-floating error-message",style={"display":"none"},
+                ),
             ],className='loginCard'),      
         ],className="centered SystematicGradient"
 )
 
 layout= serve_layout()
 
+
+
 @callback(
     [Output("location","href"),
-    Output(component_id='loginFailedBox',component_property='style')],
+    Output(component_id='loginFailedBox',component_property='style'),
+    ],
     Input("LoginBTN","n_clicks"),
     [State("userForm", "value"),
     State("passForm", "value")],
@@ -75,8 +79,4 @@ def prints(n,userN,userP):
     except: # invalid_user_credentials 
         return dash.no_update,{'display': 'block'}
         # raise PreventUpdate
-   
 
-
-
- 
