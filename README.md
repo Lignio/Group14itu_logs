@@ -36,5 +36,5 @@ Swagger ui is provided on localhost:8002/docs
 ### Accessing the Frontend
 The Frontend is a website that can be accesssed on localhost:8050
 
-### Bugs and other issues
-Currently the dropdown for severity on the Anomlies page does not display properly on firefox.
+### Known bugs and issues
+- When using Firefox, marking/unmarking anomalies as false positives does not cause a visual change on the page like it should before either reloading, selecting different filters or marking/unmarking another anomaly.
