@@ -5,7 +5,7 @@ import plotly.express as px
 from datetime import date
 import dash_bootstrap_components as dbc
 import requests
-from plotly.graph_objs import *
+import plotly.graph_objs
 import json
 import keyCloakHandler
 from dash.exceptions import PreventUpdate

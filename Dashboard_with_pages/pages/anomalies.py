@@ -47,72 +47,14 @@ def serve_layout():
                     html.H1("Anomalies", className="FontBold"),
                     id="TitleDIV",
                 ),
-                html.Div(
-                    # This is the breadcrumb, made using Boostrap.
-                    # The current href's lead nowhere, but can be easily changed to do so.
-                    html.Nav(
-                        html.Ol(
-                            className="breadcrumb",
-                            children=[
-                                html.Li(
-                                    className="breadcrumb-item",
-                                    children=[
-                                        html.A(
-                                            "Home",
-                                            href="./home.py",
-                                            style={
-                                                "text-decoration": "none",
-                                                "color": "#6c757d",
-                                            },
-                                        )
-                                    ],
-                                ),
-                                html.Li(
-                                    className="breadcrumb-item",
-                                    children=[
-                                        html.A(
-                                            "Anomaly Detector",
-                                            href="",
-                                            style={
-                                                "text-decoration": "none",
-                                                "color": "#6c757d",
-                                            },
-                                        )
-                                    ],
-                                ),
-                                html.Li(
-                                    "Anomalies",
-                                    className="breadcrumb-item active FontBold",
-                                    style={"color": "black"},
-                                ),
-                            ],
-                        ),
-                    ),
-                ),
-                # Dropdown menu
-                html.Div(
-                    children=[
-                        dcc.Dropdown(
-                            [
-                                "All time",
-                                "Today",
-                                "Yesterday",
-                                "Last two days",
-                                "Last 7 days",
-                                "This month",
-                            ],
-                            "Today",
-                            id="interval_picker_dropdown",
-                            style={"width": "10vw"},
-                        ),
-                    ]
-                ),
                 # This is the popup menu that is shown when the user presses the ... button.
                 html.Div(
                     [
                         dbc.Modal(
                             [
-                                dbc.ModalHeader(dbc.ModalTitle("Options"), close_button=False),
+                                dbc.ModalHeader(
+                                    dbc.ModalTitle("Options"), close_button=False
+                                ),
                                 dbc.ModalBody(
                                     html.Div(
                                         children=[
@@ -169,6 +111,19 @@ def serve_layout():
                                         "margin-top": "-5px",
                                     },
                                 ),
+                                dcc.Dropdown(
+                                    [
+                                        "All time",
+                                        "Today",
+                                        "Yesterday",
+                                        "Last two days",
+                                        "Last 7 days",
+                                        "This month",
+                                    ],
+                                    "Today",
+                                    id="interval_picker_dropdown",
+                                    style={"width": "13vw", "margin-right": "11px"},
+                                ),
                                 # Dropdown for choosing which severity level to filter by
                                 dcc.Dropdown(
                                     [
@@ -179,8 +134,7 @@ def serve_layout():
                                     ],
                                     "Any Severity",
                                     id="dropdownmenu_severity",
-                                    className="cardLine",
-                                    style={"width": "13vw", "margin-right": "8px"},
+                                    style={"width": "13vw", "margin-right": "11px"},
                                 ),
                                 dcc.Dropdown(
                                     [
@@ -190,8 +144,7 @@ def serve_layout():
                                     ],
                                     "Unhandled Anomalies",
                                     id="dropdownmenu_handled",
-                                    className="cardLine",
-                                    style={"width": "13vw", "margin-right": "8px"},
+                                    style={"width": "13vw", "margin-right": "11px"},
                                 ),
                             ],
                             style={"margin": "10px 10px 10px 10px", "display": "flex"},
@@ -225,17 +178,23 @@ def serve_layout():
                                 "height": "70vh",
                                 "marginBottom": "20px",
                             },
-                            tooltip_conditional = [
+                            tooltip_conditional=[
                                 {
-                                    'if': {'column_id': col},
-                                    'value': 'Click to edit this value',
-                                    'use_with': 'data'
-                                } for col in ['false_positive', '...']
+                                    "if": {"column_id": col},
+                                    "value": "Click to edit this value",
+                                    "use_with": "data",
+                                }
+                                for col in ["false_positive", "..."]
                             ],
                             tooltip_delay=0,
                             tooltip_duration=None,
-                            css=[{"selector": ".show-hide", "rule": "display: none"},
-                                 {'selector': '.dash-table-tooltip', 'rule': 'background-color: #141446; color: white'}],
+                            css=[
+                                {"selector": ".show-hide", "rule": "display: none"},
+                                {
+                                    "selector": ".dash-table-tooltip",
+                                    "rule": "background-color: #141446; color: white",
+                                },
+                            ],
                             style_data_conditional=[
                                 {
                                     "if": {
@@ -297,7 +256,11 @@ def serve_layout():
                                 "textAlign": "center",
                             },
                             style_cell_conditional=[
-                                {"if": {"column_id": a}, "textAlign": "center"}
+                                {
+                                    "if": {"column_id": a},
+                                    "textAlign": "center",
+                                    "width": "100px",
+                                }
                                 for a in [
                                     "id",
                                     "log_time",
@@ -359,6 +322,7 @@ layout = serve_layout
         Input("demo-dropdown", "value"),
     ],
     [State("anomaly_table", "derived_viewport_data"), State("modal", "is_open")],
+    prevent_initial_call=True,
 )
 
 # This method handles what pressing on the '...' button does.
@@ -440,6 +404,7 @@ def handled_value(value):
         Input("dropdownmenu_severity", "value"),
         Input("dropdownmenu_handled", "value"),
     ],
+    prevent_initial_call=True,
 )
 def adjust_table(value, n, sevValue, hanValue):
     data = getCopyDF(value)
@@ -495,12 +460,13 @@ def getDataDF():
     actualDataDF["log_time"] = pd.to_datetime(
         actualDataDF["log_time"], format="%d/%m/%Y", dayfirst=True
     )
+    actualDataDF.log_time = pd.DatetimeIndex(actualDataDF.log_time).strftime("%Y-%m-%d")
 
     severityList = []
     for i in actualDataDF.anomaly_score:
-        if i < 0.03:
+        if i < 0.0226:
             severityList.append("low")
-        elif i < 0.05:
+        elif i < 0.03:
             severityList.append("medium")
         else:
             severityList.append("high")
@@ -530,8 +496,8 @@ def getCopyDF(value):
     interval = calculate_interval(value)
 
     copyDf = actualDataDF[
-        (actualDataDF["log_time"] <= interval[0])
-        & (actualDataDF["log_time"] >= interval[1])
+        (pd.to_datetime(actualDataDF["log_time"]) <= interval[0])
+        & (pd.to_datetime(actualDataDF["log_time"]) >= interval[1])
     ]
 
     return copyDf

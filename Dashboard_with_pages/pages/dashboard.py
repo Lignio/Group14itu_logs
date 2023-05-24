@@ -5,7 +5,7 @@ import plotly.express as px
 from datetime import date
 import dash_bootstrap_components as dbc
 import requests
-from plotly.graph_objs import *
+import plotly.graph_objs
 import json
 import keyCloakHandler
 from pydantic import BaseSettings
@@ -75,9 +75,9 @@ def getDataDFSlim():
     )
     severityList = []
     for i in actualDataDF.anomaly_score:
-        if i < 0.03:
+        if i < 0.0226:
             severityList.append("low")
-        elif i < 0.05:
+        elif i < 0.03:
             severityList.append("medium")
         else:
             severityList.append("high")
@@ -163,9 +163,9 @@ def countvalues():
     anomalyToPiechart = [0, 0, 0]
     anomalyScoreList = getAnomalyScoreList()
     for i in anomalyScoreList:
-        if i < 0.024:
+        if i < 0.0226:
             anomalyToPiechart[0] += 1
-        elif i > 0.024 and i < 0.026:
+        elif i >= 0.0226 and i < 0.03:
             anomalyToPiechart[1] += 1
         else:
             anomalyToPiechart[2] += 1
@@ -187,8 +187,14 @@ def serve_layout():
         inboxDataFrame = getDataDFInbox()
         PieChartFig = px.pie(
             values=countvalues(),
-            names=["0.02 - 0.024", "0.024 - 0.026", ">0.026"],
-            title="",  # Title is blank
+            names=["Low", "Medium", "High"],
+            color=["Low", "Medium", "High"],
+            labels=["Low", "Medium", "High"],
+            color_discrete_map={
+                "Low": "#FFFF00",
+                "Medium": "#ffa500",
+                "High": "#e37c8b",
+            },
         ).update_layout(margin=dict(l=20, r=20, t=30, b=20))
 
         # used for making the line graph, gets its values from getAnomalyByDate()
@@ -210,51 +216,6 @@ def serve_layout():
                             id="TitleDIV",
                         ),
                         html.Div(
-                            # This is the breadcrumb, made using Boostrap.
-                            # The current href's lead nowhere, but can be easily changed to do so.
-                            html.Nav(
-                                html.Ol(
-                                    className="breadcrumb",
-                                    children=[
-                                        html.Li(
-                                            className="breadcrumb-item",
-                                            children=[
-                                                html.A(
-                                                    "Home",
-                                                    href="./home.py",
-                                                    style={
-                                                        "text-decoration": "none",
-                                                        "color": "#6c757d",
-                                                    },
-                                                )
-                                            ],
-                                        ),
-                                        html.Li(
-                                            className="breadcrumb-item",
-                                            children=[
-                                                html.A(
-                                                    "Anomaly Detector",
-                                                    href="",
-                                                    style={
-                                                        "text-decoration": "none",
-                                                        "color": "#6c757d",
-                                                    },
-                                                )
-                                            ],
-                                        ),
-                                        html.Li(
-                                            "Dashboard",
-                                            className="breadcrumb-item active FontBold",
-                                            style={"color": "black"},
-                                        ),
-                                    ],
-                                )
-                            )
-                        ),
-                        # Dropdown menu - each of the items have been given an id. This is used for callback.
-                        # Label is the text being shown on the Dropdown Menu
-                        # ClassName/Style doesn't work. Instead toggle_style/toggleClassName is used.
-                        html.Div(
                             children=[
                                 dcc.Dropdown(
                                     [
@@ -266,13 +227,10 @@ def serve_layout():
                                         "This month",
                                     ],
                                     "Today",
-                                    className="border-white DropShadow",
                                     id="interval_selector",
                                     style={
                                         "width": "10vw",
                                         "margin-bottom": "20px",
-                                        "background": "white",
-                                        "color": "black",
                                     },
                                 ),
                             ]
@@ -293,9 +251,6 @@ def serve_layout():
                                                             className="bi bi-exclamation-circle fa-2x cardText cardLine FontBold IconBold",
                                                             style={"float": "left"},
                                                         ),
-                                                        # This is the three vertical dots. It is commented out since it has no functionality.
-                                                        # It should not be deleted!
-                                                        # html.I(className="bi bi-three-dots-vertical fa-2x cardText cardLine FontBold", style={"float":"right"})
                                                     ]
                                                 ),
                                                 html.H3(
@@ -317,20 +272,7 @@ def serve_layout():
                                                                 "color": "#1c1952",
                                                             },
                                                         ),
-                                                        html.Div(
-                                                            children=[
-                                                                html.H2(
-                                                                    " 00%",
-                                                                    className="GreenCard bi bi-graph-up cardText card-subtitle cardLine FontBold IconBold",
-                                                                    style={
-                                                                        "float": "right",
-                                                                        "margin-top": "35px",
-                                                                        "font-size": "20px",
-                                                                        "padding": "5px 10px 5px",
-                                                                    },
-                                                                )
-                                                            ]
-                                                        ),
+                                                        html.Div(children=[]),
                                                     ],
                                                 ),
                                             ],
@@ -625,6 +567,7 @@ layout = serve_layout
         Input("interval_selector", "value"),
         Input("count_update_interval", "n_intervals"),
     ],
+    prevent_initial_call=True,
 )
 def update_dataContainer(value, unused):
     trigger = ctx.triggered_id
@@ -645,7 +588,9 @@ def update_dataContainer(value, unused):
 
 
 @callback(
-    Output("locDash", "href"), Input("page-dash", "children"), allow_duplicate=True
+    Output("locDash", "href"),
+    Input("page-dash", "children"),
+    allow_duplicate=True,
 )
 def toLogin(input):
     return "http://127.0.0.1:8050/login"
@@ -682,8 +627,10 @@ def update_wavegraph(unused):
 def update_piechart(unused, value):
     return px.pie(
         values=countvalues(),
-        names=["0.02 - 0.024", "0.024 - 0.026", ">0.026"],
-        title="",  # Title is blank
+        names=["Low", "Medium", "High"],
+        color=["Low", "Medium", "High"],
+        labels=["Low", "Medium", "High"],
+        color_discrete_map={"Low": "#FFFF00", "Medium": "#ffa500", "High": "#e37c8b"},
     ).update_layout(margin=dict(l=20, r=20, t=30, b=20))
 
 
@@ -735,5 +682,4 @@ def goToAnomaly(active_cell, data):
         row = active_cell["row"]
         selected = data[row]["id"]
         dataContainer.id = selected
-        logger.debug("CHECk we are here")
         return "http://127.0.0.1:8050/anomalies"
