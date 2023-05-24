@@ -404,7 +404,6 @@ def handled_value(value):
         Input("dropdownmenu_severity", "value"),
         Input("dropdownmenu_handled", "value"),
     ],
-    prevent_initial_call=True,
 )
 def adjust_table(value, n, sevValue, hanValue):
     data = getCopyDF(value)
