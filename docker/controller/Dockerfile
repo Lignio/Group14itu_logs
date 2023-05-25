@@ -16,5 +16,3 @@ RUN pip install -e .
 RUN pip install uvicorn
 
 CMD ["uvicorn", "controller.app.main:app", "--host", "0.0.0.0", "--port", "8002"]
-
-

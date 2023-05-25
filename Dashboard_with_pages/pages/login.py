@@ -5,26 +5,31 @@ import plotly.express as px
 from datetime import date
 import dash_bootstrap_components as dbc
 import requests
-from plotly.graph_objs import *
+import plotly.graph_objs
 import json
 import keyCloakHandler
+from dash.exceptions import PreventUpdate
 
 # Separate pages need to be registered like this to show up in the page container in app.py
 dash.register_page(__name__)
 
+
 def serve_layout():
-    #div that cover the whole side
-        return html.Div([
-            html.Div(id="hiddenDiv",style={"display":"none"}),
+    # div that cover the whole side
+    return html.Div([
+            html.Div(id="hiddenDiv", style={"display": "none"}),
             dcc.Location(id="location"),
-            dbc.Col([
-                html.H2("Log in", className="SideElement", style={"margin":"5vh"}),
-                dbc.FormFloating(
+            dbc.Col(
+                [
+                    html.H2("Log in", className="SideElement", style={"margin": "5vh"}),
+                    dbc.FormFloating(
                         [
-                            dbc.Input(placeholder="example@internet.com", id="userForm"),
+                            dbc.Input(
+                                placeholder="example@internet.com", id="userForm"
+                            ),
                             dbc.Label("Username"),
                         ],
-                        style={"width": "50%","padding-bottom":"5vh"},
+                        style={"width": "50%", "padding-bottom": "5vh"},
                         className="SideElement",
                     ),
                 dbc.FormFloating(
@@ -42,26 +47,40 @@ def serve_layout():
                 dbc.Button(
                     "Login",
                     className="SideBTN SideElement bi bi-box-arrow-in-right",
-                    style={"vertical-align": "text-bottom",},
+                    style={"vertical-align": "text-bottom","margin-bottom":"2vh",},
                     id="LoginBTN",
                     n_clicks=0
-                )
-            ],className='loginCard'),   
+                ),
+                #Prompt for when login failed - will only show when necessary
+                html.Div([
+                    html.P("Incorrect username or password", className="SideElement error-text"), 
+                ],id='loginFailedBox',className="shakeAnimation SideElement form-floating error-message",style={"display":"none"},
+                ),
+            ],className='loginCard'),      
         ],className="centered SystematicGradient"
-)
+    )
 
-layout= serve_layout()
+layout = serve_layout()
 
 @callback(
-    Output("location","href"),
-    Input("LoginBTN","n_clicks"),
-    [State("userForm", "value"),
-    State("passForm", "value")],
+    [
+        Output("location", "href"),
+        Output(component_id="loginFailedBox", component_property="style"),
+    ],
+    [
+        Input("LoginBTN", "n_clicks"),
+        Input("passForm", "n_submit"),
+        Input("userForm", "n_submit"),
+    ],
+    [State("userForm", "value"), State("passForm", "value")],
     prevent_initial_call=True,
 )
-def prints(n,userN,userP):
-    keyCloakHandler.CurrentUser = keyCloakHandler.currentUserSession(userN, userP)
-    return "http://127.0.0.1:8050/"
-
-
- 
+# Checks if the user can log in or not
+# If no user is found prompt will be shown and no redirect will happen
+def check_login_information(n, enter_press_pass, enter_press_user, userN, userP):
+    try:
+        keyCloakHandler.CurrentUser = keyCloakHandler.currentUserSession(userN, userP)
+        return "http://127.0.0.1:8050/", {"display": "none"}
+    except:  # invalid_user_credentials
+        return dash.no_update, {"display": "block"}
+        # raise PreventUpdate

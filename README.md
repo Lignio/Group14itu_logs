@@ -75,5 +75,7 @@ Login: guest/guest
 ### Accessing the Frontend
 The Frontend is a website that can be accessed on localhost:8050
 
-### Bugs and other issues
-Currently the dropdown for severity on the Anomalies page does not display properly on firefox.
+### Known bugs and issues
+- Currently the dropdown for severity on the Anomalies page does not display properly on firefox.
+- When using Firefox, marking/unmarking anomalies as false positives does not cause a visual change on the page like it should before either reloading, selecting different filters or marking/unmarking another anomaly.
+

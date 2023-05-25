@@ -1,5 +1,11 @@
 from keycloak import KeycloakOpenID, keycloak_admin, KeycloakAdmin
+from pydantic import BaseSettings
+class Settings(BaseSettings):
+    server_url: str
 
+settings = Settings()
+url = settings.server_url
+server_url = f"{url}"
 
 #--- Currently logged in user ---#
 CurrentUser = None
@@ -8,18 +14,17 @@ CurrentUser = None
 #--------------------------------#
 
 # Initializes the keycloak client I think. Used to interact with keycloak most places
-keycloak_openid = KeycloakOpenID(server_url="http://keycloak:8080/",
+keycloak_openid = KeycloakOpenID(server_url=server_url,
                                 client_id="dashclient",
                                 realm_name="master",
                                 client_secret_key="woo797pz61dd17nZxWTWQfMygWLY4DJB")
-
-
+   
 # Gets authentication token for user, used to gain access to user information based on login info
 def getAuthTokenForUser(username, userPass):
-    
     token = keycloak_openid.token(username, userPass)['access_token']
     return token
 
+    
 # Get user info returns only the basic info on the user, such as their username and email. 
 # This function is not in use right now, but is there if we need it going forward.
 def getUserInfo(username,userPass):
